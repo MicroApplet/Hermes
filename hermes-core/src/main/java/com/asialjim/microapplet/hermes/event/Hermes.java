@@ -18,10 +18,12 @@ package com.asialjim.microapplet.hermes.event;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.text.translate.NumericEntityUnescaper;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -66,7 +68,10 @@ public final class Hermes<E> implements Serializable {
      *     <li>false: 仅需调用本地监听器</li>
      * </ul>
      */
-    private Boolean global = false;
+    private Boolean global;
+    public boolean global(){
+        return Optional.ofNullable(this.global).orElse(Boolean.FALSE);
+    }
 
     /**
      * 发送时间

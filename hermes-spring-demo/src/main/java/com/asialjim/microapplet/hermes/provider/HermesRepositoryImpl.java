@@ -24,9 +24,12 @@ import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesR
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -58,6 +61,8 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     @Override
     public void register(Type type, Set<String> serviceNames) {
+        if (Objects.isNull(type) || CollectionUtils.isEmpty(serviceNames))
+            return;
         String typeName = type.getTypeName();
         this.hermesRegisterMapperService.register(typeName, serviceNames);
     }
@@ -98,8 +103,6 @@ public class HermesRepositoryImpl implements HermesRepository {
         HermesPO po = HermesPO.from(hermes);
         this.hermesMapperService.saveCacheable(po);
         hermes.setId(po.getId());
-
-
     }
 
     @Override
@@ -110,12 +113,18 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     @Override
     public void publish(Hermes<?> hermes) {
+        log.info("Publish Hermes: {}", hermes);
+        if (hermes.global()) {
+            Long res = stringRedisTemplate.execute((RedisCallback<Long>) connection -> {
+                Long l = connection.publish(
+                        "hermes:id".getBytes(StandardCharsets.UTF_8),
+                        hermes.getId().getBytes(StandardCharsets.UTF_8)
+                );
+                log.info("Connection Publish Result: {}", l);
+                return l;
+            });
 
-        stringRedisTemplate.execute(
-                (RedisCallback<Long>) connection ->
-                        connection.publish(
-                                "hermes:id".getBytes(StandardCharsets.UTF_8),
-                                hermes.getId().getBytes(StandardCharsets.UTF_8)
-                        ));
+            log.info("Hermes Publish Result: {}", res);
+        }
     }
 }

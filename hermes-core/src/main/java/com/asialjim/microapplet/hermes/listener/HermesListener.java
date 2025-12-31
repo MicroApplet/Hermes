@@ -16,11 +16,16 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Hermes事件监听器
@@ -30,9 +35,9 @@ import lombok.Getter;
  * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
  */
 @AllArgsConstructor
-public class HermesListener implements Listener<Hermes<?>> {
+public class HermesListener implements JVMListener<Hermes<?>> {
     @Getter
-    private final String serviceName;
+    private final HermesServiceName serviceName;
     private final HermesRepository hermesRepository;
 
     @Override
@@ -42,16 +47,21 @@ public class HermesListener implements Listener<Hermes<?>> {
         String err = "OK";
         try {
             Object data = event.getData();
-            EventBus.push(id,data);
+            EventBus.push(id,false, data);
         } catch (Throwable throwable) {
-             err = throwable.getMessage();
+            err = throwable.getMessage();
         } finally {
-            hermesRepository.log(id,serviceName,code,err);
+            hermesRepository.log(id, this.serviceName.serviceName(), code, err);
         }
     }
 
     @Override
-    public void doOnEvent(Hermes<Hermes<?>> event) throws Throwable {
+    public Set<Type> eventType() {
+        return Collections.singleton(Hermes.class);
+    }
+
+    @Override
+    public void doOnEvent(Hermes<Hermes<?>> event) {
         // do nothing here
     }
 }

@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import com.mybatisflex.core.query.QueryChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 public class HermesRegisterMapperServiceImpl
@@ -66,7 +68,10 @@ public class HermesRegisterMapperServiceImpl
 
     @Override
     public void register(String typeName, Set<String> serviceNames) {
+        if (log.isDebugEnabled())
+            log.info("将 {} 类型事件感兴趣的服务 {} 注册到注册表", typeName, serviceNames);
         serviceNames.stream()
+                .filter(StringUtils::isNotBlank)
                 .map(item -> new HermesRegisterPO().setType(typeName).setSubServiceName(item))
                 .filter(item -> !hadSubscribe(typeName, item.getSubServiceName()))
                 .forEach(this::save);
@@ -79,14 +84,18 @@ public class HermesRegisterMapperServiceImpl
     public boolean hadSubscribe(String type, String serviceName) {
         String key = "tmp:hermes:register:subscribed:" + type + ":" + serviceName;
         String s = this.stringRedisTemplate.opsForValue().get(key);
-        if (StringUtils.isNotBlank(s))
-            return Boolean.parseBoolean(s);
+        if (log.isDebugEnabled())
+            log.info("{} 事件服务 {} 注册表缓存{}", type, serviceName, s);
+        if ("true".equals(s))
+            return true;
 
         boolean exists = queryChain()
                 .where(HermesRegisterPO::getType).eq(type)
                 .where(HermesRegisterPO::getSubServiceName).eq(serviceName)
                 .exists();
 
+        if (log.isDebugEnabled())
+            log.info("{} 事件服务 {} 注册表已注册？{}", type, serviceName, exists);
         this.stringRedisTemplate.opsForValue().set(key, String.valueOf(exists), 1, TimeUnit.HOURS);
         return exists;
     }

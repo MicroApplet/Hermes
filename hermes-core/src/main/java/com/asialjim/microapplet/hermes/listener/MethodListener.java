@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,7 +38,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class MethodListener<Event> implements Listener<Event> {
     @Getter
-    private final String serviceName;
+    private final HermesServiceName serviceName;
     private final Object bean;
     private final Method method;
     private final Class<Event> eventType;

@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -40,7 +41,7 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 public abstract class HermesConsumer {
     private final ScheduledExecutorService scheduler;
-    private final String serviceName;
+    private final HermesServiceName hermesServiceName;
     private final HermesRepository hermesRepository;
 
     @PostConstruct
@@ -80,9 +81,9 @@ public abstract class HermesConsumer {
      * @since 2025/12/26
      */
     private void onHermesReceived(String id) {
-        Hermes<?> hermes = this.hermesRepository.queryAvailableHermesByIdAndServiceName(id, this.serviceName);
+        Hermes<?> hermes = this.hermesRepository.queryAvailableHermesByIdAndServiceName(id, this.hermesServiceName.serviceName());
         // 发布本地事件
-        Optional.ofNullable(hermes).ifPresent(EventBus::push);
+        Optional.ofNullable(hermes).flatMap(item -> Optional.of(item.setGlobal(false))).ifPresent(EventBus::push);
     }
 
     /**
@@ -93,7 +94,7 @@ public abstract class HermesConsumer {
      */
     protected void eventReConsumption() {
         this.scheduler.scheduleAtFixedRate(
-                new ReConsumptionEventTask(this.serviceName, this.hermesRepository),
+                new ReConsumptionEventTask(this.hermesServiceName.serviceName(), this.hermesRepository),
                 0, 2, TimeUnit.MINUTES
         );
     }
@@ -108,7 +109,9 @@ public abstract class HermesConsumer {
             Hermes<?> hermes;
             do {
                 hermes = hermesRepository.pop(serviceName);
-                EventBus.push(hermes);
+                if (Objects.nonNull(hermes)) {
+                    EventBus.push(hermes.setGlobal(false));
+                }
             } while (Objects.nonNull(hermes));
         }
     }

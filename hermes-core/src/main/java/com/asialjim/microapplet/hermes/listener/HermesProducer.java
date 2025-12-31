@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesCluster;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -23,9 +24,11 @@ import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -40,10 +43,11 @@ import java.util.function.Supplier;
  * @version 1.0
  * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
  */
+@Slf4j
 @Setter
-public class HermesProducer implements Listener<Object> {
+public class HermesProducer implements JVMListener<Object> {
     @Getter
-    private final String serviceName;
+    private final HermesServiceName serviceName;
     private final HermesRepository hermesRepository;
     private final Supplier<String> sessionSupplier;
     private final Supplier<String> traceSupplier;
@@ -60,7 +64,7 @@ public class HermesProducer implements Listener<Object> {
      * @param cluster          {@link HermesCluster 事件中继集群}
      * @since 2025/12/26
      */
-    public HermesProducer(@Nonnull String serviceName,
+    public HermesProducer(@Nonnull HermesServiceName serviceName,
                           @Nonnull HermesRepository hermesRepository,
                           @Nonnull Supplier<String> sessionSupplier,
                           @Nonnull Supplier<String> traceSupplier,
@@ -84,25 +88,40 @@ public class HermesProducer implements Listener<Object> {
 
     @Override
     public void doOnEvent(Hermes<Object> hermes) {
+        if (Objects.nonNull(hermes.getGlobal())) {
+            //  非全局事件，不发布到全局总线
+            if (!hermes.global()) {
+                return;
+            }
+        }
         // 包装为全局事件，发布到 Hermes
         boolean clusterAlive = hermes.isClusterAlive();
         // 通过事件中继集群发送
         if (clusterAlive) {
+            log.info("事件中继集群发布事件：{}", hermes);
             this.hermesCluster.send(hermes);
         }
 
         // 通过本地消息表发送
         else {
+            log.info("本地消息表发送事件：{}", hermes);
             this.hermesRepository.send(hermes);
         }
     }
 
     @Override
     public void before(Hermes<Object> wrapper) {
+        if (Objects.nonNull(wrapper.getGlobal())) {
+            //  非全局事件，不发布到全局总线
+            if (!wrapper.global()) {
+                return;
+            }
+        }
         wrapper.setSession(this.sessionSupplier.get());
         wrapper.setTrace(this.traceSupplier.get());
-        wrapper.setSendFrom(this.serviceName);
-        wrapper.setGlobal(true);
+        wrapper.setSendFrom(this.serviceName.serviceName());
+        if (Objects.isNull(wrapper.getGlobal()))
+            wrapper.setGlobal(true);
         this.hermesRepository.populateSendTo(wrapper);
         wrapper.setStatus("PENDING");
 

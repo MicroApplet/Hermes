@@ -26,11 +26,16 @@ import com.mybatisflex.annotation.Table;
 import com.mybatisflex.core.keygen.KeyGenerators;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.springframework.data.convert.Jsr310Converters;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Hermes 本地消息表
@@ -69,7 +74,7 @@ public class HermesPO implements Serializable {
      * 发送时间
      */
     @Column(onInsertValue = "now()")
-    private LocalDateTime sendTime;
+    private Date sendTime;
 
     /**
      * 事件类型
@@ -79,7 +84,7 @@ public class HermesPO implements Serializable {
     /**
      * 要发给谁
      */
-    private Set<String> sendTo;
+    private String sendTo;
 
     /**
      * 事件内容
@@ -94,7 +99,7 @@ public class HermesPO implements Serializable {
     /**
      * 如果发送失败，下一次发送时间
      */
-    private LocalDateTime nextSendTime;
+    private Date nextSendTime;
 
     /**
      * 重发次数
@@ -112,13 +117,19 @@ public class HermesPO implements Serializable {
         po.setId(hermes.getId());
         po.setSendFrom(hermes.getSendFrom());
         po.setGlobal(hermes.getGlobal());
-        po.setSendTime(hermes.getSendTime());
+        if (Objects.nonNull(hermes.getSendTime())) {
+            Date sendTime = Jsr310Converters.LocalDateTimeToDateConverter.INSTANCE.convert(hermes.getSendTime());
+            po.setSendTime(sendTime);
+        }
         po.setType(hermes.getType());
-        po.setSendTo(hermes.getSendTo());
+        po.setSendTo(String.join(",", hermes.getSendTo()));
         String json = new Gson().toJson(hermes.getData());
         po.setData(json);
         po.setStatus(hermes.getStatus());
-        po.setNextSendTime(hermes.getNextSendTime());
+        if (Objects.nonNull(hermes.getNextSendTime())) {
+            Date nextSendTime = Jsr310Converters.LocalDateTimeToDateConverter.INSTANCE.convert(hermes.getNextSendTime());
+            po.setNextSendTime(nextSendTime);
+        }
         po.setRetryTimes(hermes.getRetryTimes());
         po.setVersion(hermes.getVersion());
         return po;
@@ -129,9 +140,16 @@ public class HermesPO implements Serializable {
         po.setId(hermes.getId());
         po.setSendFrom(hermes.getSendFrom());
         po.setGlobal(hermes.getGlobal());
-        po.setSendTime(hermes.getSendTime());
+        Date sendTime = hermes.getSendTime();
+        if (Objects.nonNull(sendTime)) {
+            LocalDateTime convert = Jsr310Converters.DateToLocalDateTimeConverter.INSTANCE.convert(sendTime);
+            po.setSendTime(convert);
+        }
         po.setType(hermes.getType());
-        po.setSendTo(hermes.getSendTo());
+        if (Objects.nonNull(hermes.getSendTo())) {
+            Set<String> collect = Arrays.stream(hermes.getSendTo().split(",")).collect(Collectors.toSet());
+            po.setSendTo(collect);
+        }
         try {
             Object o = new Gson().fromJson(hermes.getData(), Class.forName(hermes.getType()));
             po.setData(o);
@@ -139,7 +157,10 @@ public class HermesPO implements Serializable {
         }
 
         po.setStatus(hermes.getStatus());
-        po.setNextSendTime(hermes.getNextSendTime());
+        if (Objects.nonNull(hermes.getNextSendTime())) {
+            LocalDateTime convert = Jsr310Converters.DateToLocalDateTimeConverter.INSTANCE.convert(hermes.getNextSendTime());
+            po.setNextSendTime(convert);
+        }
         po.setRetryTimes(hermes.getRetryTimes());
         po.setVersion(hermes.getVersion());
         return po;

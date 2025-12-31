@@ -16,11 +16,11 @@
 
 package com.asialjim.microapplet.hermes.event;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.annotation.OnEvent;
 import com.asialjim.microapplet.hermes.listener.Listener;
 import com.asialjim.microapplet.hermes.listener.MethodListener;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
-import jakarta.annotation.Resource;
 import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
@@ -41,16 +42,20 @@ import java.util.Objects;
  * @version 1.0
  * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
  */
+@Order
 @Component
 public class SpringEventBusBridge implements BeanPostProcessor, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
     @Setter
     private ApplicationContext applicationContext;
-    @Resource
-    private HermesRepository hermesRepository;
 
     @Override
     public void onApplicationEvent(@SuppressWarnings("NullableProblems") ContextRefreshedEvent event) {
-        EventBus.register2Hermes(this.hermesRepository);
+        HermesRepository bean = this.applicationContext.getBean(HermesRepository.class);
+        EventBus.register2Hermes(bean);
+    }
+
+    private HermesServiceName name() {
+        return this.applicationContext.getBean(HermesServiceName.class);
     }
 
     // 0. Bean初始化后，扫描其方法上的@OnEvent注解
@@ -63,7 +68,6 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
         if (Objects.isNull(bean))
             return bean;
 
-        String applicationName = this.applicationContext.getApplicationName();
         for (Method method : bean.getClass().getMethods()) {
             OnEvent onEvent = method.getAnnotation(OnEvent.class);
             if (Objects.isNull(onEvent))
@@ -81,7 +85,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
             if (ArrayUtils.getLength(parameterTypes) != 1)
                 throw new IllegalStateException("Method " + method.getName() + " only one parameter,Cause it was Tagged by " + OnEvent.class);
             Class<?> parameterType = parameterTypes[0];
-            Listener<?> listener = new MethodListener<>(applicationName,bean, method, parameterType);
+            Listener<?> listener = new MethodListener<>(name(), bean, method, parameterType);
             listener.register();
         }
         return bean;

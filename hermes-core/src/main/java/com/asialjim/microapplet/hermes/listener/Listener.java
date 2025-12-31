@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import jakarta.annotation.PostConstruct;
@@ -39,14 +40,16 @@ import java.util.concurrent.TimeUnit;
  * @since 2025/12/25, &nbsp;&nbsp; <em>version:1.0</em>
  */
 public interface Listener<E> extends EventListener {
-    Logger log = LoggerFactory.getLogger(Listener.class);
+    default Logger log() {
+        return LoggerFactory.getLogger(this.getClass());
+    }
 
     /**
      * 监听器所属服务名称
      *
      * @since 2025/12/26
      */
-    String getServiceName();
+    HermesServiceName getServiceName();
 
     /**
      * 监听器注册到本地事件总线
@@ -85,7 +88,8 @@ public interface Listener<E> extends EventListener {
 
     /**
      * 将事件包装为 Hermes
-	 * @param event {@link E event}
+     *
+     * @param event {@link E event}
      * @return {@link Hermes<E> }
      * @since 2025/12/26
      */
@@ -94,8 +98,9 @@ public interface Listener<E> extends EventListener {
             //noinspection unchecked
             return (Hermes<E>) hermes;
 
+        // 默认包装为全局事件
         return new Hermes<E>()
-                .setGlobal(false)
+                .setGlobal(true)
                 .setSendTime(LocalDateTime.now())
                 .setType(event.getClass().getTypeName())
                 .setData(event)
@@ -105,26 +110,29 @@ public interface Listener<E> extends EventListener {
 
     /**
      * 监听器处理 Hermes
-	 * @param event {@link E event}
-	 * @param stopWatch {@link StopWatch stopWatch}
-	 * @param hermes {@link Hermes hermes}
+     *
+     * @param event     {@link E event}
+     * @param stopWatch {@link StopWatch stopWatch}
+     * @param hermes    {@link Hermes hermes}
      * @since 2025/12/26
      */
     private void onHermes(E event, StopWatch stopWatch, Hermes<E> hermes) {
         try {
             stopWatch.start();
-            log.info("监听事件[{}]处理进入...", event);
+            if (log().isDebugEnabled())
+                log().info("监听事件[{}]处理进入...", event);
             before(hermes);
-            log.info("监听事件[{}]处理开始...", event);
+            if (log().isDebugEnabled())
+                log().info("监听事件[{}]处理开始...", event);
             doOnEvent(hermes);
-            log.info("监听事件[{}]处理结束...", event);
+            if (log().isDebugEnabled())
+                log().info("监听事件[{}]处理结束...", event);
             stopWatch.stop();
             long time = stopWatch.getTime(TimeUnit.MILLISECONDS);
-            log.info("监听事件[{}]处理耗时[{} 毫秒]", event, time);
+            log().info("监听事件[{}]处理耗时[{} 毫秒]", event, time);
         } catch (Throwable e) {
-
-            if (log.isDebugEnabled()) log.error("监听事件：{},异常:{}", event, e.getMessage(), e);
-            else log.info("监听事件：{},异常:{}", event, e.getMessage());
+            if (log().isDebugEnabled()) log().error("监听事件：{},异常:{}", event, e.getMessage(), e);
+            else log().info("监听事件：{},异常:{}", event, e.getMessage());
 
             stopWatch.stop();
             stopWatch.reset();
@@ -134,7 +142,7 @@ public interface Listener<E> extends EventListener {
             stopWatch.stop();
 
             long time = stopWatch.getTime(TimeUnit.MILLISECONDS);
-            log.info("监听事件[{}]异常回调耗时[{} 毫秒]", event, time);
+            log().info("监听事件[{}]异常回调耗时[{} 毫秒]", event, time);
         } finally {
             onFinal(hermes);
         }

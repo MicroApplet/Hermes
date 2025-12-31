@@ -16,6 +16,9 @@
 
 package com.asialjim.microapplet.hermes.event;
 
+import com.asialjim.microapplet.hermes.listener.HermesConsumer;
+import com.asialjim.microapplet.hermes.listener.HermesProducer;
+import com.asialjim.microapplet.hermes.listener.JVMListener;
 import com.asialjim.microapplet.hermes.listener.Listener;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import lombok.AccessLevel;
@@ -57,26 +60,33 @@ public class EventBus {
         listenerHub.values()
                 .stream()
                 .flatMap(Collection::stream)
+                .filter(item -> !(item instanceof JVMListener<?>))// 本地监听器不应注册到注册表
                 .filter(hadRegister::add)
                 .forEach(item ->
                         Optional.ofNullable(item.eventType())
                                 .stream()
                                 .flatMap(Collection::stream)
                                 .map(type -> serviceMapGroupByType.computeIfAbsent(type, key -> new HashSet<>()))
-                                .forEach(names -> names.add(item.getServiceName()))
+                                .forEach(names -> names.add(item.getServiceName().serviceName()))
                 );
 
-        serviceMapGroupByType.forEach(hermesRepository::register);
+        serviceMapGroupByType.forEach((type, serviceNames) -> {
+            if (Objects.nonNull(type) && Objects.nonNull(serviceNames) && !serviceNames.isEmpty()) {
+                hermesRepository.register(type, serviceNames);
+            }
+        });
     }
 
-
-    public static <E> void push(String id, E event) {
+    public static <E> void push(String id, boolean push2global, E event) {
         if (Objects.isNull(event)) return;
 
+
         // 向全局监听器推送事件
-        for (Listener<?> listener : globalListeners) {
-            //noinspection unchecked
-            doPush(id, event, (Listener<E>) listener);
+        if (push2global) {
+            for (Listener<?> listener : globalListeners) {
+                //noinspection unchecked
+                doPush(id, event, (Listener<E>) listener);
+            }
         }
 
         Set<Listener<?>> listeners = listenerHub.get(event.getClass());
@@ -87,6 +97,10 @@ public class EventBus {
             //noinspection unchecked
             doPush(id, event, (Listener<E>) listener);
         }
+    }
+
+    public static <E> void push(String id, E event) {
+        push(id, true, event);
     }
 
     private static <E> void doPush(String id, E event, Listener<E> listener) {

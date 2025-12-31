@@ -22,6 +22,7 @@ import com.asialjim.microapplet.hermes.infrastructure.repository.po.HermesRelati
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesRelationMapperService;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -30,13 +31,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Repository
 @AllArgsConstructor
 public class HermesRelationMapperServiceImpl
         extends ServiceImpl<HermesRelationBaseMapper, HermesRelationPO>
         implements HermesRelationMapperService {
     private final StringRedisTemplate stringRedisTemplate;
-    private final ServerProperties serverProperties;
 
     @Override
     public String pop(String serviceName) {
@@ -81,13 +82,12 @@ public class HermesRelationMapperServiceImpl
     @Override
     public void log(String id, String serviceName, String code, String err) {
         String desc = String.format("{\"code\":\"%s\",\"err\":\"%s\"}", code, err);
-        this.updateChain()
-                .forUpdate()
-                .set(HermesRelationPO::getStatus, 1)
+        boolean update = this.updateChain()
+                .set(HermesRelationPO::getStatus, 9)
                 .set(HermesRelationPO::getDescription, desc)
                 .where(HermesRelationPO::getHermesId).eq(id)
                 .where(HermesRelationPO::getServiceName).eq(serviceName)
                 .update();
+        log.info("服务： {} 对 Hermes: {} 处理结果：{} 记录结果： {}", serviceName, id, desc, update);
     }
-
 }

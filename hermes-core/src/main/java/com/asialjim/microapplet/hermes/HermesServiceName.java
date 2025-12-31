@@ -14,22 +14,17 @@
  *    limitations under the License.
  */
 
-package com.asialjim.microapplet.hermes.annotation;
-
-import java.lang.annotation.*;
+package com.asialjim.microapplet.hermes;
 
 /**
- * 标记方法为一个事件监听器
- * <pre>
- *     被此注解标记的方法，必须声明为 public，必须至少接收一个参数
- * </pre>
+ * Hermes 服务名称
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
  * @version 1.0
- * @since 2025/12/25, &nbsp;&nbsp; <em>version:1.0</em>
+ * @since 2025/12/31, &nbsp;&nbsp; <em>version:1.0</em>
  */
-@Documented
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface OnEvent {
+@FunctionalInterface
+public interface HermesServiceName {
+
+    String serviceName();
 }

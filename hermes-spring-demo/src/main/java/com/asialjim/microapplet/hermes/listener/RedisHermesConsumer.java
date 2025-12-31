@@ -16,7 +16,9 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.Message;
@@ -27,13 +29,14 @@ import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
+@Slf4j
 public class RedisHermesConsumer extends HermesConsumer implements MessageListener {
     private Consumer<String> consumer;
     public RedisHermesConsumer(ScheduledExecutorService scheduler,
-                               String serviceName,
+                               HermesServiceName hermesServiceName,
                                HermesRepository hermesRepository) {
 
-        super(scheduler, serviceName, hermesRepository);
+        super(scheduler, hermesServiceName, hermesRepository);
     }
 
     @Override
@@ -54,6 +57,7 @@ public class RedisHermesConsumer extends HermesConsumer implements MessageListen
 
         byte[] body = message.getBody();
         String hermesId = new String(body, StandardCharsets.UTF_8);
+        log.info("Redis Hermes {} Got...", hermesId);
 
         try {
             this.consumer.accept(hermesId);

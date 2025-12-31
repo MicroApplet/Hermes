@@ -16,14 +16,12 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.config;
 
+import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.listener.HermesListener;
 import com.asialjim.microapplet.hermes.listener.HermesProducer;
 import com.asialjim.microapplet.hermes.listener.RedisHermesConsumer;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
-import lombok.Setter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -42,24 +40,25 @@ import java.util.concurrent.ScheduledExecutorService;
  * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
  */
 @Configuration
-public class RedisConfig implements ApplicationContextAware {
-    @Setter
-    private ApplicationContext applicationContext;
+public class RedisConfig  {
 
-    @Bean
-    public HermesListener hermesListener(HermesRepository hermesRepository) {
+    @Bean(initMethod = "register")
+    public HermesListener hermesListener(
+            HermesServiceName hermesServiceName,
+            HermesRepository hermesRepository) {
         return new HermesListener(
-                this.applicationContext.getApplicationName(),
+                hermesServiceName,
                 hermesRepository
         );
     }
 
     @Bean
     public HermesProducer redisHermesProducer(
+            HermesServiceName hermesServiceName,
             HermesRepository hermesRepository) {
 
         return new HermesProducer(
-                this.applicationContext.getApplicationName(),
+                hermesServiceName,
                 hermesRepository,
                 () -> UUID.randomUUID().toString(),
                 () -> UUID.randomUUID().toString(),
@@ -69,12 +68,13 @@ public class RedisConfig implements ApplicationContextAware {
 
     @Bean(initMethod = "start")
     public RedisHermesConsumer redisHermesConsumer(
+            HermesServiceName hermesServiceName,
             ScheduledExecutorService scheduledExecutorService,
             HermesRepository hermesRepository) {
 
         return new RedisHermesConsumer(
                 scheduledExecutorService,
-                applicationContext.getApplicationName(),
+                hermesServiceName,
                 hermesRepository
         );
     }
