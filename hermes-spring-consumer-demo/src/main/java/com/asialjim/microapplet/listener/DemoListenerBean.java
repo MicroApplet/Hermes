@@ -25,9 +25,27 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DemoListenerBean {
 
-    @OnEvent
+    @OnEvent(order = 0)
     @SuppressWarnings("unused")
-    public void onDemoEventA(DemoEventA event) {
-        log.info("Demo Event A 事件接收到了： {}", event);
+    public void onDemoEvent0(DemoEventA event) {
+        log.info("监听器0 收到事件： {}", event);
+    }
+
+    @OnEvent(order = 1)
+    @SuppressWarnings("unused")
+    public void onDemoEvent1(DemoEventA event) {
+        log.info("监听器1 收到事件： {}", event);
+    }
+
+    @OnEvent(order = 2)
+    @SuppressWarnings("unused")
+    public void onDemoEvent2(DemoEventA event) {
+        log.info("监听器2 收到事件： {}", event);
+    }
+
+    @OnEvent(order = 3)
+    @SuppressWarnings("unused")
+    public void onDemoEvent3(DemoEventA event) {
+        log.info("监听器3 收到事件： {}", event);
     }
 }

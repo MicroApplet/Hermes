@@ -106,13 +106,8 @@ public abstract class HermesConsumer {
 
         @Override
         public void run() {
-            Hermes<?> hermes;
-            do {
-                hermes = hermesRepository.pop(serviceName);
-                if (Objects.nonNull(hermes)) {
-                    EventBus.push(hermes.setGlobal(false));
-                }
-            } while (Objects.nonNull(hermes));
+            hermesRepository.reConsumption(serviceName);
+
         }
     }
 }

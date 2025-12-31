@@ -42,6 +42,8 @@ public class MethodListener<Event> implements Listener<Event> {
     private final Object bean;
     private final Method method;
     private final Class<Event> eventType;
+    @Getter
+    private final int order;
 
     @Override
     public final Set<Type> eventType() {

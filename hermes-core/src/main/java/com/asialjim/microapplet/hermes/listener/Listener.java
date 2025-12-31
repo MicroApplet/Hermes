@@ -39,9 +39,18 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 2025/12/25, &nbsp;&nbsp; <em>version:1.0</em>
  */
-public interface Listener<E> extends EventListener {
+public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
     default Logger log() {
         return LoggerFactory.getLogger(this.getClass());
+    }
+
+    default int getOrder() {
+        return 0;
+    }
+
+    @Override
+    default int compareTo(Listener<E> o) {
+        return this.getOrder() - o.getOrder();
     }
 
     /**
@@ -129,7 +138,8 @@ public interface Listener<E> extends EventListener {
                 log().info("监听事件[{}]处理结束...", event);
             stopWatch.stop();
             long time = stopWatch.getTime(TimeUnit.MILLISECONDS);
-            log().info("监听事件[{}]处理耗时[{} 毫秒]", event, time);
+            if (log().isDebugEnabled())
+                log().info("监听事件[{}]处理耗时[{} 毫秒]", event, time);
         } catch (Throwable e) {
             if (log().isDebugEnabled()) log().error("监听事件：{},异常:{}", event, e.getMessage(), e);
             else log().info("监听事件：{},异常:{}", event, e.getMessage());
@@ -142,7 +152,8 @@ public interface Listener<E> extends EventListener {
             stopWatch.stop();
 
             long time = stopWatch.getTime(TimeUnit.MILLISECONDS);
-            log().info("监听事件[{}]异常回调耗时[{} 毫秒]", event, time);
+            if (log().isDebugEnabled())
+                log().info("监听事件[{}]异常回调耗时[{} 毫秒]", event, time);
         } finally {
             onFinal(hermes);
         }

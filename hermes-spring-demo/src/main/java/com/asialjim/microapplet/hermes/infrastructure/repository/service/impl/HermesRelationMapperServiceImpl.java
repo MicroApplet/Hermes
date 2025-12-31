@@ -17,9 +17,9 @@
 package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.HermesRelationBaseMapper;
-import com.asialjim.microapplet.hermes.infrastructure.repository.po.HermesRegisterPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.HermesRelationPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesRelationMapperService;
+import com.mybatisflex.core.query.QueryChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,12 +40,26 @@ public class HermesRelationMapperServiceImpl
     private final StringRedisTemplate stringRedisTemplate;
 
     @Override
+    public void poped(String hermesId, String serviceName) {
+
+       boolean update = updateChain()
+                .set(HermesRelationPO::getStatus,2)
+                .where(HermesRelationPO::getServiceName).eq(serviceName)
+                .where(HermesRelationPO::getHermesId).eq(hermesId)
+                .update();
+       if (log.isDebugEnabled())
+           log.info("Hermes: {} for Service: {}  had updated: {}", hermesId, serviceName, update);
+    }
+
+
+    @Override
     public String pop(String serviceName) {
         //noinspection unchecked
         return queryChain()
+                .forUpdateNoWait()
                 .select(HermesRelationPO::getHermesId)
                 .where(HermesRelationPO::getServiceName).eq(serviceName)
-                .where(HermesRelationPO::getStatus).lt(1)
+                .where(HermesRelationPO::getStatus).le(1)
                 .oneAs(String.class);
     }
 
@@ -56,14 +70,13 @@ public class HermesRelationMapperServiceImpl
         if (StringUtils.isNotBlank(s))
             return false;
 
-        //noinspection unchecked
         boolean available = queryChain()
-                .select(HermesRelationPO::getHermesId)
+                .where(HermesRelationPO::getHermesId).eq(id)
                 .where(HermesRelationPO::getServiceName).eq(serviceName)
                 .where(HermesRelationPO::getStatus).lt(1)
                 .exists();
         if (available)
-            stringRedisTemplate.opsForValue().set(key, "lk", 6, TimeUnit.HOURS);
+            stringRedisTemplate.opsForValue().set(key, "lk", 30, TimeUnit.MINUTES);
         return available;
     }
 
@@ -88,6 +101,6 @@ public class HermesRelationMapperServiceImpl
                 .where(HermesRelationPO::getHermesId).eq(id)
                 .where(HermesRelationPO::getServiceName).eq(serviceName)
                 .update();
-        log.info("服务： {} 对 Hermes: {} 处理结果：{} 记录结果： {}", serviceName, id, desc, update);
+        log.info("服务： {} 对 Hermes: {} 处理结果：{} 记录结果： {}\r\n", serviceName, id, desc, update);
     }
 }

@@ -16,8 +16,6 @@
 
 package com.asialjim.microapplet.hermes.event;
 
-import com.asialjim.microapplet.hermes.listener.HermesConsumer;
-import com.asialjim.microapplet.hermes.listener.HermesProducer;
 import com.asialjim.microapplet.hermes.listener.JVMListener;
 import com.asialjim.microapplet.hermes.listener.Listener;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -28,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 事件总线
@@ -39,8 +38,8 @@ import java.util.*;
 @Slf4j
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventBus {
-    private static final Map<Type, Set<Listener<?>>> listenerHub = new HashMap<>();
-    private static final Set<Listener<?>> globalListeners = new HashSet<>();
+    private static final Map<Type, TreeSet<Listener<?>>> listenerHub = new ConcurrentHashMap<>();
+    private static final Set<Listener<?>> globalListeners = new TreeSet<>();
     private static final Set<Listener<?>> hadRegister = new HashSet<>();
 
     /**
@@ -89,7 +88,7 @@ public class EventBus {
             }
         }
 
-        Set<Listener<?>> listeners = listenerHub.get(event.getClass());
+        TreeSet<Listener<?>> listeners = listenerHub.get(event.getClass());
         if (Objects.isNull(listeners)) return;
 
         // 向指定监听器推送事件
@@ -131,17 +130,18 @@ public class EventBus {
 
             if (!StringUtils.startsWith(type.toString(), "class")) return;
 
-            Set<Listener<?>> listeners = listenerHub.get(type);
+            TreeSet<Listener<?>> listeners = listenerHub.get(type);
             if (Objects.isNull(listeners)) {
                 synchronized (listenerHub) {
                     //noinspection ConstantValue
                     if (Objects.isNull(listeners)) {
-                        listeners = new HashSet<>();
+                        listeners = new TreeSet<>(Comparator.comparingInt(Listener::getOrder));
                         listenerHub.put(type, listeners);
                     }
                 }
             }
-            log.info("事件总线注册事件：{} 监听器：{}", type, listener);
+            if (log.isDebugEnabled())
+                log.info("事件总线注册事件：{} 监听器：{}", type, listener);
             listeners.add(listener);
         }
     }

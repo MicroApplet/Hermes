@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.provider;
 
+import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.HermesPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesMapperService;
@@ -24,11 +25,11 @@ import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesR
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Type;
@@ -72,11 +73,15 @@ public class HermesRepositoryImpl implements HermesRepository {
         String hermesId = this.hermesRelationMapperService.pop(serviceName);
         if (StringUtils.isBlank(hermesId))
             return null;
+        if (log.isDebugEnabled())
+            log.info("补偿消费事件编号：{}", hermesId);
         HermesPO hermesPO = this.hermesMapperService.queryById(hermesId);
         if (Objects.isNull(hermesPO) || StringUtils.equals("-", hermesPO.getData()))
             return null;
         Hermes<?> hermes = HermesPO.to(hermesPO);
-        log.info("Pop {} result: {}", serviceName, hermes);
+        if (log.isDebugEnabled())
+            log.info("Pop {} result: {}", serviceName, hermes);
+        this.hermesRelationMapperService.poped(hermesId, serviceName);
         return hermes;
     }
 
@@ -89,13 +94,39 @@ public class HermesRepositoryImpl implements HermesRepository {
         if (Objects.isNull(hermesPO) || StringUtils.equals("-", hermesPO.getData()))
             return null;
         Hermes<?> hermes = HermesPO.to(hermesPO);
-        log.info("Available Hermes of {} for {} result: {}", id, serviceName, hermes);
+        if (log.isDebugEnabled())
+            log.info("Available Hermes of {} for {} result: {}", id, serviceName, hermes);
         return hermes;
     }
 
     @Override
     public void log(String id, String serviceName, String code, String err) {
         this.hermesRelationMapperService.log(id, serviceName, code, err);
+    }
+
+    @Override
+    public void reConsumption(String serviceName) {
+        if (log.isDebugEnabled())
+            log.info("服务 {} 补偿消费Hermes......", serviceName);
+        HermesRepositoryImpl hermesRepository = (HermesRepositoryImpl) AopContext.currentProxy();
+        Hermes<?> hermes;
+        do {
+            if (log.isDebugEnabled())
+                log.info("补偿消费...");
+            hermes = hermesRepository.doReConsumption(serviceName);
+        } while (Objects.nonNull(hermes));
+        log.info("服务 {} 补偿消费Hermes 结束!!!!!!", serviceName);
+    }
+
+    @Transactional
+    public Hermes<?> doReConsumption(String serviceName) {
+        Hermes<?> hermes = pop(serviceName);
+        if (log.isDebugEnabled())
+            log.info("获取到补偿消费事件：{}", hermes);
+        if (Objects.nonNull(hermes)) {
+            EventBus.push(hermes.setGlobal(false));
+        }
+        return hermes;
     }
 
     @Override
@@ -113,18 +144,21 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     @Override
     public void publish(Hermes<?> hermes) {
-        log.info("Publish Hermes: {}", hermes);
+        if (log.isDebugEnabled())
+            log.info("Publish Hermes: {}", hermes);
         if (hermes.global()) {
             Long res = stringRedisTemplate.execute((RedisCallback<Long>) connection -> {
                 Long l = connection.publish(
                         "hermes:id".getBytes(StandardCharsets.UTF_8),
                         hermes.getId().getBytes(StandardCharsets.UTF_8)
                 );
-                log.info("Connection Publish Result: {}", l);
+                if (log.isDebugEnabled())
+                    log.info("Connection Publish Result: {}", l);
                 return l;
             });
 
-            log.info("Hermes Publish Result: {}", res);
+            if (log.isDebugEnabled())
+                log.info("Hermes Publish Result: {}", res);
         }
     }
 }

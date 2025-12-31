@@ -81,4 +81,12 @@ public interface HermesRepository extends HermesSender {
      * @since 2025/12/26
      */
     void log(String id, String serviceName, String code, String err);
+
+    /**
+     * 服务补偿消费感兴趣的事件
+     *
+     * @param serviceName {@link String serviceName}
+     * @since 2025/12/31
+     */
+    void reConsumption(String serviceName);
 }

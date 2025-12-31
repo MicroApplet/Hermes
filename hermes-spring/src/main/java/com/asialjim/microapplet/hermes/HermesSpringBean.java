@@ -2,6 +2,7 @@ package com.asialjim.microapplet.hermes;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 /**
  * Hermes Spring 包扫描
@@ -12,5 +13,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ComponentScan
+@EnableAspectJAutoProxy(exposeProxy = true)
 public class HermesSpringBean {
 }

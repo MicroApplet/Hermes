@@ -32,4 +32,5 @@ public interface HermesRelationMapperService extends IService<HermesRelationPO> 
 
     void send(String id, Set<String> sendTo);
 
+    void poped(String hermesId, String serviceName);
 }

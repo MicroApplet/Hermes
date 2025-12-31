@@ -42,8 +42,8 @@ import java.util.Objects;
  * @version 1.0
  * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
  */
-@Order
-@Component
+//@Order
+//@Component
 public class SpringEventBusBridge implements BeanPostProcessor, ApplicationContextAware, ApplicationListener<ContextRefreshedEvent> {
     @Setter
     private ApplicationContext applicationContext;
@@ -85,7 +85,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
             if (ArrayUtils.getLength(parameterTypes) != 1)
                 throw new IllegalStateException("Method " + method.getName() + " only one parameter,Cause it was Tagged by " + OnEvent.class);
             Class<?> parameterType = parameterTypes[0];
-            Listener<?> listener = new MethodListener<>(name(), bean, method, parameterType);
+            Listener<?> listener = new MethodListener<>(name(), bean, method, parameterType,onEvent.order());
             listener.register();
         }
         return bean;
