@@ -161,4 +161,19 @@ public class HermesRepositoryImpl implements HermesRepository {
                 log.info("Hermes Publish Result: {}", res);
         }
     }
+
+    @Override
+    public void processingEvent(String eventId, String application) {
+        this.hermesRelationMapperService.processingEvent(eventId, application);
+    }
+
+    @Override
+    public void errorEvent(String eventId, String application, String err) {
+
+    }
+
+    @Override
+    public void succeedEvent(String eventId, String application) {
+
+    }
 }

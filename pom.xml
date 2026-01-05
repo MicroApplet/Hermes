@@ -81,6 +81,9 @@
         <module>hermes-spring-producer-demo</module>
         <module>hermes-spring-demo</module>
         <module>hermes-spring-consumer-demo</module>
+        <module>hermes-spring-redis-mybatis-flex</module>
+        <module>hermes-spring-redis-mybatis-flex-consumer-demo</module>
+        <module>hermes-spring-redis-mybatis-flex-producer-demo</module>
     </modules>
 
     <properties>

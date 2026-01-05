@@ -19,12 +19,10 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.HermesRelationBaseMapper;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.HermesRelationPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.HermesRelationMapperService;
-import com.mybatisflex.core.query.QueryChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -49,6 +47,11 @@ public class HermesRelationMapperServiceImpl
                 .update();
        if (log.isDebugEnabled())
            log.info("Hermes: {} for Service: {}  had updated: {}", hermesId, serviceName, update);
+    }
+
+    @Override
+    public void processingEvent(String eventId, String application) {
+
     }
 
 

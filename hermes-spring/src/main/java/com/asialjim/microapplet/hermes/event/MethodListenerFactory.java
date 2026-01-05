@@ -18,6 +18,7 @@ package com.asialjim.microapplet.hermes.event;
 
 import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.listener.MethodListener;
+import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,29 +30,99 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 
+/**
+ * MethodListener工厂类，用于创建MethodListener实例
+ * MethodListener Factory Class, used to create MethodListener instances
+ * <p>
+ * 实现了FactoryBean接口，负责根据配置创建MethodListener对象
+ * 实现了ApplicationContextAware接口，获取Spring应用上下文
+ * <p>
+ * Implements FactoryBean interface, responsible for creating MethodListener objects according to configuration
+ * Implements ApplicationContextAware interface, gets Spring application context
+ *
+ * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 @Slf4j
 @Setter
 public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, ApplicationContextAware {
+    /**
+     * MethodListener的Bean名称
+     * Bean name of MethodListener
+     */
     private String beanName;
+    
+    /**
+     * Spring应用上下文
+     * Spring application context
+     */
     private ApplicationContext applicationContext;
+    
+    /**
+     * 包含被@OnEvent注解标记方法的Bean实例
+     * Bean instance containing method marked with @OnEvent annotation
+     */
     private Object bean;
+    
+    /**
+     * 被@OnEvent注解标记的方法
+     * Method marked with @OnEvent annotation
+     */
     private Method method;
+    
+    /**
+     * 事件类型
+     * Event type
+     */
     private Class<?> eventType;
+    
+    /**
+     * 监听器执行顺序
+     * Listener execution order
+     */
     private int order;
 
+    /**
+     * 创建并返回MethodListener实例
+     * Create and return MethodListener instance
+     *
+     * @return MethodListener实例
+     *         MethodListener instance
+     * @since 1.0.0
+     */
     @Override
     public MethodListener<?> getObject() {
         if (log.isDebugEnabled())
             log.info("MethodListener {} Creating...", beanName);
         HermesServiceName serviceName = this.applicationContext.getBean(HermesServiceName.class);
-        return new MethodListener<>(serviceName, bean, method, eventType, order);
+        HermesRepository hermesRepository = this.applicationContext.getBean(HermesRepository.class);
+        return new MethodListener<>(serviceName,hermesRepository, bean, method, eventType, order);
     }
 
+    /**
+     * 初始化方法，在Bean创建后调用
+     * <p>
+     * 创建MethodListener实例并注册到事件总线
+     * Initialization method, called after Bean creation
+     * <p>
+     * Create MethodListener instance and register it to event bus
+     *
+     * @since 1.0.0
+     */
     @PostConstruct
     public void init() {
         Objects.requireNonNull(getObject()).register();
     }
 
+    /**
+     * 获取FactoryBean创建的对象类型
+     * Get the object type created by FactoryBean
+     *
+     * @return MethodListener.class
+     *         MethodListener.class
+     * @since 1.0.0
+     */
     @Override
     public Class<?> getObjectType() {
         return MethodListener.class;

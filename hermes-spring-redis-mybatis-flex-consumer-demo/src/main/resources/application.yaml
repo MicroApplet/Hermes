@@ -1,0 +1,21 @@
+spring:
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:hermes}?useSSL=false&serverTimezone=UTC
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  main:
+    allow-bean-definition-overriding: true
+
+mybatis-flex:
+  # 配置mapper.xml文件的路径，默认为mapper/**/*.xml
+  mapper-locations: classpath*:mapper/**/*.xml
+  # 配置实体类的包路径
+  type-aliases-package: com.asialjim.microapplet.hermes.infrastructure.repository.po
+  # 配置是否启用驼峰命名转换
+  is-enabled-camel-case: true

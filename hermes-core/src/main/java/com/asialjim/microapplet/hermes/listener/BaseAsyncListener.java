@@ -21,18 +21,43 @@ import java.util.concurrent.Executor;
 
 /**
  * 异步监听器
+ * Async Listener
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/3/10, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
+ * @param <Event> 事件类型
+ *                Event type
  */
 public abstract class BaseAsyncListener<Event> implements Listener<Event> {
+    /**
+     * 执行器，用于异步执行事件处理
+     * Executor for asynchronous event processing
+     */
     protected Executor executor;
 
+    /**
+     * 设置执行器
+     * Set executor
+     *
+     * @param executor 执行器实例
+     *                 Executor instance
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     public final void setExecutor(Executor executor) {
         this.executor = executor;
     }
 
+    /**
+     * 异步处理事件
+     * Process event asynchronously
+     *
+     * @param event 事件对象
+     *              Event object
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public final void onEvent(Event event) {
         if (Objects.nonNull(executor))
@@ -41,6 +66,15 @@ public abstract class BaseAsyncListener<Event> implements Listener<Event> {
             Listener.super.onEvent(event);
     }
 
+    /**
+     * 执行任务，优先使用异步执行器
+     * Execute task, prefer to use async executor
+     *
+     * @param runnable 要执行的任务
+     *                 Task to execute
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     protected void exe(Runnable runnable) {
         if (Objects.isNull(runnable))
             return;

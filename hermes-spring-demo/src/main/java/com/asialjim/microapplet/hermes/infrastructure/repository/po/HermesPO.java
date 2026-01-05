@@ -18,7 +18,6 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.po;
 
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;
@@ -126,12 +125,7 @@ public class HermesPO implements Serializable {
         String json = new Gson().toJson(hermes.getData());
         po.setData(json);
         po.setStatus(hermes.getStatus());
-        if (Objects.nonNull(hermes.getNextSendTime())) {
-            Date nextSendTime = Jsr310Converters.LocalDateTimeToDateConverter.INSTANCE.convert(hermes.getNextSendTime());
-            po.setNextSendTime(nextSendTime);
-        }
-        po.setRetryTimes(hermes.getRetryTimes());
-        po.setVersion(hermes.getVersion());
+
         return po;
     }
 
@@ -157,12 +151,7 @@ public class HermesPO implements Serializable {
         }
 
         po.setStatus(hermes.getStatus());
-        if (Objects.nonNull(hermes.getNextSendTime())) {
-            LocalDateTime convert = Jsr310Converters.DateToLocalDateTimeConverter.INSTANCE.convert(hermes.getNextSendTime());
-            po.setNextSendTime(convert);
-        }
-        po.setRetryTimes(hermes.getRetryTimes());
-        po.setVersion(hermes.getVersion());
+
         return po;
     }
 }

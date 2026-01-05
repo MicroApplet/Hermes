@@ -29,17 +29,36 @@ import java.util.Set;
 
 /**
  * Hermes事件监听器
+ * Hermes Event Listener
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @AllArgsConstructor
 public class HermesListener implements JVMListener<Hermes<?>> {
+    /**
+     * 服务名称
+     * Service name
+     */
     @Getter
     private final HermesServiceName serviceName;
+    
+    /**
+     * Hermes仓库，用于事件日志记录
+     * Hermes repository for event log recording
+     */
     private final HermesRepository hermesRepository;
 
+    /**
+     * 处理Hermes事件
+     * Process Hermes event
+     *
+     * @param event Hermes事件对象
+     *              Hermes event object
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public void onEvent(Hermes<?> event) {
         String id = event.getId();
@@ -49,17 +68,36 @@ public class HermesListener implements JVMListener<Hermes<?>> {
             Object data = event.getData();
             EventBus.push(id,false, data);
         } catch (Throwable throwable) {
+            code = "FAIL";
             err = throwable.getMessage();
         } finally {
             hermesRepository.log(id, this.serviceName.serviceName(), code, err);
         }
     }
 
+    /**
+     * 获取感兴趣的事件类型
+     * Get interested event types
+     *
+     * @return 事件类型集合，仅包含Hermes类
+     *         Set of event types, only contains Hermes class
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public Set<Type> eventType() {
         return Collections.singleton(Hermes.class);
     }
 
+    /**
+     * 执行事件处理的核心方法
+     * Execute core event processing method
+     *
+     * @param event Hermes事件对象
+     *              Hermes event object
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public void doOnEvent(Hermes<Hermes<?>> event) {
         // do nothing here

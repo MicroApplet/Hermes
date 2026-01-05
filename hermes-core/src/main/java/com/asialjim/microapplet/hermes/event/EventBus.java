@@ -30,10 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 事件总线
+ * Event Bus
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Slf4j
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -44,9 +45,12 @@ public class EventBus {
 
     /**
      * 注册监听器到Hermes注册表
+     * Register listeners to Hermes registry
      *
      * @param hermesRepository {@link HermesRepository hermesRepository}
-     * @since 2025/12/26
+     *                         Hermes repository instance
+     * @since 1.0.0
+     * @version 1.0.0
      */
     public static void register2Hermes(HermesRepository hermesRepository) {
         if (Objects.isNull(hermesRepository)) {
@@ -76,6 +80,21 @@ public class EventBus {
         });
     }
 
+    /**
+     * 发布事件，可指定事件ID和是否推送到全局监听器
+     * Publish event, can specify event ID and whether to push to global listeners
+     *
+     * @param id          事件ID，用于事件溯源
+     *                    Event ID, used for event tracing
+     * @param push2global 是否推送到全局监听器
+     *                    Whether to push to global listeners
+     * @param event       事件对象
+     *                    Event object
+     * @param <E>         事件类型
+     *                    Event type
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     public static <E> void push(String id, boolean push2global, E event) {
         if (Objects.isNull(event)) return;
 
@@ -98,10 +117,38 @@ public class EventBus {
         }
     }
 
+    /**
+     * 发布带事件ID的事件，默认推送到全局监听器
+     * Publish event with ID, default push to global listeners
+     *
+     * @param id    事件ID，用于事件溯源
+     *              Event ID, used for event tracing
+     * @param event 事件对象
+     *              Event object
+     * @param <E>   事件类型
+     *              Event type
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     public static <E> void push(String id, E event) {
         push(id, true, event);
     }
 
+    /**
+     * 内部方法，实际执行事件推送给指定监听器
+     * Internal method, actually execute event push to specified listener
+     *
+     * @param id       事件ID，用于事件溯源
+     *                 Event ID, used for event tracing
+     * @param event    事件对象
+     *                 Event object
+     * @param listener 监听器实例
+     *                 Listener instance
+     * @param <E>      事件类型
+     *                 Event type
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     private static <E> void doPush(String id, E event, Listener<E> listener) {
         if (StringUtils.isBlank(id))
             listener.onEvent(event);
@@ -111,14 +158,28 @@ public class EventBus {
 
     /**
      * 发布事件，用户直接调用此静态方法即可发布事件
+     * Publish event, users can directly call this static method to publish events
      *
      * @param event {@link E event}
-     * @since 2025/12/26
+     *              Event object
+     * @param <E>   事件类型
+     *              Event type
+     * @since 1.0.0
+     * @version 1.0.0
      */
     public static <E> void push(E event) {
         push(null, event);
     }
 
+    /**
+     * 注册监听器到事件总线
+     * Register listener to event bus
+     *
+     * @param listener 监听器实例
+     *                 Listener instance
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     public static void register(Listener<?> listener) {
         if (Objects.isNull(listener)) return;
         boolean globalListener = listener.globalListener();

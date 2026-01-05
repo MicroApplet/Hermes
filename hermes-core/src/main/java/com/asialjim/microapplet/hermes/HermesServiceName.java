@@ -18,13 +18,23 @@ package com.asialjim.microapplet.hermes;
 
 /**
  * Hermes 服务名称
+ * Hermes Service Name
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/31, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @FunctionalInterface
 public interface HermesServiceName {
 
+    /**
+     * 获取服务名称
+     * Get service name
+     *
+     * @return 服务名称字符串
+     *         Service name string
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     String serviceName();
 }

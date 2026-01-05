@@ -35,34 +35,66 @@ import java.util.function.Supplier;
 
 /**
  * Hermes 事件发布器
+ * Hermes Event Producer
  * <pre>
  *     监听JVM本地事件，然后发布到分布式总线
+ *     Listen to JVM local events, then publish to distributed bus
  * </pre>
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Slf4j
 @Setter
 public class HermesProducer implements JVMListener<Object> {
+    /**
+     * 服务名称
+     * Service name
+     */
     @Getter
     private final HermesServiceName serviceName;
+    
+    /**
+     * Hermes仓库，用于事件存储和发送
+     * Hermes repository for event storage and sending
+     */
     private final HermesRepository hermesRepository;
+    
+    /**
+     * 会话标识供应商
+     * Session ID supplier
+     */
     private final Supplier<String> sessionSupplier;
+    
+    /**
+     * 链路标识供应商
+     * Trace ID supplier
+     */
     private final Supplier<String> traceSupplier;
+    
+    /**
+     * Hermes集群，用于事件中继
+     * Hermes cluster for event relay
+     */
     private HermesCluster hermesCluster;
-
 
     /**
      * 构建 Hermes 生产者
+     * Build Hermes producer
      *
-     * @param serviceName      {@link String 生产者服务名称}
-     * @param hermesRepository {@link HermesRepository Hermes仓库}
-     * @param sessionSupplier  {@link Supplier 会话标识供应商}
-     * @param traceSupplier    {@link Supplier 链路标识供应商}
-     * @param cluster          {@link HermesCluster 事件中继集群}
-     * @since 2025/12/26
+     * @param serviceName      生产者服务名称
+     *                         Producer service name
+     * @param hermesRepository Hermes仓库
+     *                        Hermes repository
+     * @param sessionSupplier  会话标识供应商
+     *                        Session ID supplier
+     * @param traceSupplier    链路标识供应商
+     *                        Trace ID supplier
+     * @param cluster          事件中继集群
+     *                        Event relay cluster
+     * @since 1.0.0
+     * @version 1.0.0
      */
     public HermesProducer(@Nonnull HermesServiceName serviceName,
                           @Nonnull HermesRepository hermesRepository,
@@ -76,16 +108,43 @@ public class HermesProducer implements JVMListener<Object> {
         this.hermesCluster = cluster;
     }
 
+    /**
+     * 获取感兴趣的事件类型
+     * Get interested event types
+     *
+     * @return 事件类型集合，包含Object类
+     *         Set of event types, contains Object class
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public Set<Type> eventType() {
         return Collections.singleton(Object.class);
     }
 
+    /**
+     * 是否是全局监听器
+     * Whether it is a global listener
+     *
+     * @return 总是返回true，表示这是一个全局监听器
+     *         Always returns true, indicating this is a global listener
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public final boolean globalListener() {
         return true;
     }
 
+    /**
+     * 执行事件处理的核心方法
+     * Execute core event processing method
+     *
+     * @param hermes Hermes事件对象
+     *              Hermes event object
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public void doOnEvent(Hermes<Object> hermes) {
         if (Objects.nonNull(hermes.getGlobal())) {
@@ -109,6 +168,15 @@ public class HermesProducer implements JVMListener<Object> {
         }
     }
 
+    /**
+     * 事件处理前的回调方法
+     * Callback method before event processing
+     *
+     * @param wrapper Hermes事件包装对象
+     *                Hermes event wrapper object
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public void before(Hermes<Object> wrapper) {
         if (Objects.nonNull(wrapper.getGlobal())) {

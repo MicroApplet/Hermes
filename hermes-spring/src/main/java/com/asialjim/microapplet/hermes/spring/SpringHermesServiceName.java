@@ -24,29 +24,92 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**
- * 获取 Hermes 服务名称
+ * Spring环境下的Hermes服务名称实现
+ * Hermes Service Name Implementation Under Spring Environment
+ * <p>
+ * 实现了HermesServiceName接口，负责获取当前服务的名称
+ * 实现了ApplicationContextAware接口，获取Spring应用上下文
+ * <p>
+ * Implements HermesServiceName interface, responsible for getting the current service name
+ * Implements ApplicationContextAware interface, gets Spring application context
+ * <p>
+ * 服务名称获取优先级：
+ * 1. 已设置的name字段值
+ * 2. Spring环境变量spring.application.name
+ * 3. ApplicationContext.getApplicationName()
+ * 4. ApplicationContext.getId()
+ * 5. 默认值"unknownService"
+ * <p>
+ * Service name acquisition priority:
+ * 1. Already set name field value
+ * 2. Spring environment variable spring.application.name
+ * 3. ApplicationContext.getApplicationName()
+ * 4. ApplicationContext.getId()
+ * 5. Default value "unknownService"
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/31, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Component
 public class SpringHermesServiceName implements HermesServiceName, ApplicationContextAware {
+    /**
+     * Spring应用上下文
+     * Spring application context
+     */
     @Setter
     private ApplicationContext applicationContext;
+    
+    /**
+     * 服务名称缓存，避免重复获取
+     * Service name cache, avoiding repeated acquisition
+     */
     private String name;
 
+    /**
+     * 获取当前服务的名称
+     * Get the name of the current service
+     * <p>
+     * 服务名称获取优先级：
+     * 1. 已设置的name字段值
+     * 2. Spring环境变量spring.application.name
+     * 3. ApplicationContext.getApplicationName()
+     * 4. ApplicationContext.getId()
+     * 5. 默认值"unknownService"
+     * <p>
+     * Service name acquisition priority:
+     * 1. Already set name field value
+     * 2. Spring environment variable spring.application.name
+     * 3. ApplicationContext.getApplicationName()
+     * 4. ApplicationContext.getId()
+     * 5. Default value "unknownService"
+     *
+     * @return 当前服务的名称
+     *         Name of the current service
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     @Override
     public String serviceName() {
         if (StringUtils.isNotBlank(this.name))
             return this.name;
+        
+        // 从环境变量spring.application.name获取
         String name = applicationContext.getEnvironment().getProperty("spring.application.name");
+        
+        // 从ApplicationContext.getApplicationName()获取
         if (StringUtils.isBlank(name))
             name = applicationContext.getApplicationName();
+        
+        // 从ApplicationContext.getId()获取
         if (StringUtils.isBlank(name))
             name = applicationContext.getId();
+        
+        // 使用默认值
         if (StringUtils.isBlank(name))
             name = "unknownService";
+        
+        // 缓存服务名称
         this.name = name;
         return name;
     }

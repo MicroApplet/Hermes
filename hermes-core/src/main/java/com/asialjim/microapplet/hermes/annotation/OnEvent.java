@@ -20,18 +20,29 @@ import java.lang.annotation.*;
 
 /**
  * 标记方法为一个事件监听器
+ * Mark method as an event listener
  * <pre>
  *     被此注解标记的方法，必须声明为 public，必须至少接收一个参数
+ *     Methods marked with this annotation must be declared as public and must accept at least one parameter
  * </pre>
  *
  * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/25, &nbsp;&nbsp; <em>version:1.0</em>
+ * @version 1.0.0
+ * @since 1.0.0
  */
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OnEvent {
 
+    /**
+     * 监听器执行顺序
+     * Listener execution order
+     *
+     * @return 执行顺序，值越小优先级越高
+     *         Execution order, smaller value means higher priority
+     * @since 1.0.0
+     * @version 1.0.0
+     */
     int order() default 0;
 }

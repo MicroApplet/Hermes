@@ -16,5 +16,15 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
+/**
+ * JVM本地事件监听器
+ * JVM Local Event Listener
+ *
+ * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 1.0.0
+ * @param <E> 事件类型
+ *            Event type
+ */
 public interface JVMListener<E> extends Listener<E>{
 }
