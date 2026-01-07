@@ -28,8 +28,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -124,7 +122,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
             
             // 创建并注册MethodListener
             Class<?> parameterType = parameterTypes[0];
-            Listener<?> listener = new MethodListener<>(name(), bean, method, parameterType,onEvent.order());
+            Listener<?> listener = new MethodListener<>(null,null, bean, method, parameterType,onEvent.order());
             listener.register();
         }
         return bean;

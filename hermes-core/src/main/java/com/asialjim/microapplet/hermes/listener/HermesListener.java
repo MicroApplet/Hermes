@@ -57,7 +57,6 @@ public class HermesListener implements JVMListener<Hermes<?>> {
      * @param event Hermes事件对象
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void onEvent(Hermes<?> event) {
@@ -82,7 +81,6 @@ public class HermesListener implements JVMListener<Hermes<?>> {
      * @return 事件类型集合，仅包含Hermes类
      *         Set of event types, only contains Hermes class
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public Set<Type> eventType() {
@@ -96,7 +94,6 @@ public class HermesListener implements JVMListener<Hermes<?>> {
      * @param event Hermes事件对象
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void doOnEvent(Hermes<Hermes<?>> event) {

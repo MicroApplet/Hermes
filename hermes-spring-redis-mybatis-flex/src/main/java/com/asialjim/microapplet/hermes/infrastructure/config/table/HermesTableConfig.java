@@ -17,11 +17,17 @@
 package com.asialjim.microapplet.hermes.infrastructure.config.table;
 
 import com.mybatisflex.core.table.TableManager;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.BeansException;
+import org.apache.commons.lang3.StringUtils;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import java.util.Objects;
 
@@ -32,46 +38,45 @@ import java.util.Objects;
  * 以获取 Spring 应用上下文，从而读取配置属性。
  * Hermes table configuration class
  * <p>
- * This class is responsible for configuring the database table name prefix used by the Hermes framework, 
+ * This class is responsible for configuring the database table name prefix used by the Hermes framework,
  * implementing the ApplicationContextAware interface to obtain the Spring application context for reading configuration properties.
- * 
+ *
  * @author Asial Jim
  * @version 1.0.0
  * @since 1.0.0
  */
+@Slf4j
+@Setter
+@Aspect
 @Configuration
+@EnableAspectJAutoProxy
 public class HermesTableConfig implements ApplicationContextAware {
+    private ApplicationContext applicationContext;
 
-    /**
-     * 设置应用上下文，用于读取表前缀配置并设置表映射
-     * <p>
-     * 该方法从应用上下文中获取 HermesTableProperty 配置，设置表名前缀，
-     * 并将所有 Hermes 表映射到带前缀的表名。
-     * Set application context for reading table prefix configuration and setting table mappings
-     * <p>
-     * This method retrieves HermesTableProperty configuration from the application context, 
-     * sets the table name prefix, and maps all Hermes tables to prefixed table names.
-     * 
-     * @param applicationContext Spring 应用上下文
-     * @throws BeansException 如果获取 Bean 失败
-     * @version 1.0.0
-     * @since 1.0.0
-     */
-    @Override
-    public void setApplicationContext(
-            @SuppressWarnings("NullableProblems") ApplicationContext applicationContext)
-            throws BeansException {
+    @Around(value = "execution(public * com.asialjim.microapplet.hermes.infrastructure.repository..*.*(..)) ")
+    public Object interceptHermesTable(ProceedingJoinPoint joinPoint) throws Throwable {
+        try {
+            interceptor(applicationContext);
+            return joinPoint.proceed();
+        } finally {
+            TableManager.clear();
+        }
+    }
 
-        String prefix;
+    private void interceptor(ApplicationContext applicationContext) {
         HermesTableProperty property = extracted(applicationContext);
+        String prefix = StringUtils.EMPTY;
         if (Objects.nonNull(property)) {
             prefix = property.getPrefix();
-        } else {
-            prefix = "hermes_";
         }
+        if (StringUtils.isBlank(prefix))
+            prefix = "hermes_";
 
         for (String table : HermesTable.tables) {
-            TableManager.setHintTableMapping(table, prefix + table);
+            String value = prefix + table;
+            if (log.isDebugEnabled())
+                log.info("表别名设置：  {}   =>   {}", table, value);
+            TableManager.setHintTableMapping(table, value);
         }
     }
 
@@ -82,19 +87,25 @@ public class HermesTableConfig implements ApplicationContextAware {
      * 否则返回 null。
      * Extract HermesTableProperty instance from application context
      * <p>
-     * This method checks if a HermesTableProperty Bean exists in the application context, 
+     * This method checks if a HermesTableProperty Bean exists in the application context,
      * returns the instance if it exists, otherwise returns null.
-     * 
+     *
      * @param applicationContext Spring 应用上下文
      * @return HermesTableProperty 实例，如果不存在则返回 null
-     * @version 1.0.0
      * @since 1.0.0
      */
     private HermesTableProperty extracted(ApplicationContext applicationContext) {
-        String[] beanNamesForType = applicationContext.getBeanNamesForType(HermesTableProperty.class);
-        if (ArrayUtils.isEmpty(beanNamesForType))
+        if (Objects.isNull(applicationContext))
             return null;
+        try {
+            String[] beanNamesForType = applicationContext.getBeanNamesForType(HermesTableProperty.class);
+            if (ArrayUtils.isEmpty(beanNamesForType))
+                return null;
 
-        return applicationContext.getBean(HermesTableProperty.class);
+            return applicationContext.getBean(HermesTableProperty.class);
+        } catch (Throwable t) {
+            return null;
+        }
     }
+
 }

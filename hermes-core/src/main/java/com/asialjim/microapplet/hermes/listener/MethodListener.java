@@ -152,7 +152,6 @@ public class MethodListener<Event> implements Listener<Event> {
      * @param hermes 包装后的事件对象
      *              Wrapped event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void onAfter(Hermes<Event> hermes) {

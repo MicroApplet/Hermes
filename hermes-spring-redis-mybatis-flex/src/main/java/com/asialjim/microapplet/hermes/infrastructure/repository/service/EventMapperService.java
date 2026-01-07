@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.repository.service;
 
+import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.mybatisflex.core.service.IService;
 
@@ -73,8 +74,9 @@ public interface EventMapperService extends IService<EventPO> {
      * 
      * @param eventId 事件ID
      * @param application 应用名称
-     * @version 1.0.0
      * @since 1.0.0
      */
     void processingEvent(String eventId, String application);
+
+    void succeedEvent(String eventId, ConsumptionCount consumptionCount);
 }

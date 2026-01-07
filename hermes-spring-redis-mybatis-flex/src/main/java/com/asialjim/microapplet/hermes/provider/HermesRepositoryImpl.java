@@ -18,6 +18,7 @@ package com.asialjim.microapplet.hermes.provider;
 
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
+import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.ConsumptionMapperService;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.EventMapperService;
@@ -123,7 +124,8 @@ public class HermesRepositoryImpl implements HermesRepository {
      */
     @Override
     public void succeedEvent(String eventId, String application) {
-        this.consumptionMapperService.succeedEvent(eventId,application);
+        ConsumptionCount consumptionCount = this.consumptionMapperService.succeedEvent(eventId, application);
+        this.eventMapperService.succeedEvent(eventId,consumptionCount);
     }
 
     /**

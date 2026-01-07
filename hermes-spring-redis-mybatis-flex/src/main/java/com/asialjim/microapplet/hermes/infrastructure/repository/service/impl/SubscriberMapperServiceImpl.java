@@ -19,7 +19,7 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.SubscriberBaseMapper;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.SubscriberPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.SubscriberMapperService;
-import com.asialjim.util.jackson.Jackson;
+import com.asialjim.util.jackson.Json;
 import com.mybatisflex.core.query.QueryChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
@@ -47,7 +47,7 @@ public class SubscriberMapperServiceImpl
 
         String json = stringRedisTemplate.opsForValue().get(key);
         if (StringUtils.isNotBlank(json)) {
-            List<String> list = Jackson.json.toList(json, String.class);
+            List<String> list = Json.instance.toList(json, String.class);
             return new HashSet<>(list);
         }
 
@@ -58,7 +58,7 @@ public class SubscriberMapperServiceImpl
                 .listAs(String.class);
 
         Set<String> res = new HashSet<>(strings);
-        json = Jackson.json.toStr(res);
+        json = Json.instance.toStr(res);
         stringRedisTemplate.opsForValue().set(key, json, 1, TimeUnit.HOURS);
         return res;
     }

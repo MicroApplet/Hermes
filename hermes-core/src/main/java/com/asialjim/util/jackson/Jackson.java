@@ -22,8 +22,6 @@ import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.Module;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -58,18 +56,12 @@ public abstract class Jackson {
     private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.of("Asia/Shanghai"));
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.of("Asia/Shanghai"));
 
-    private static final ObjectMapper jsonMapper = init(new JsonMapper());
-    private static final ObjectMapper xmlMapper = init(new XmlMapper());
-
-    public static final Jackson json = instance(jsonMapper);
-    public static final Jackson xml = instance(xmlMapper);
-
     public static Jackson instance(ObjectMapper mapper) {
         return new Jackson() {
 
             @Override
             public ObjectMapper objectMapper() {
-                return mapper;
+                return init(mapper);
             }
         };
     }

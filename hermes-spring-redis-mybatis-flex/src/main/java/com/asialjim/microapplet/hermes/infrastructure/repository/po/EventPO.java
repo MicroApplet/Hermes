@@ -20,7 +20,7 @@ import com.asialjim.microapplet.hermes.HermesStatus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.infrastructure.config.table.HermesTable;
 import com.asialjim.microapplet.hermes.infrastructure.repository.handler.HermesStatusHandler;
-import com.asialjim.util.jackson.Jackson;
+import com.asialjim.util.jackson.Json;
 import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;
@@ -154,7 +154,7 @@ public class EventPO implements Serializable {
 
         try {
             String json = hermes.getData();
-            Object o = Jackson.json.toBean(json, Class.forName(hermes.getType()));
+            Object o = Json.instance.toBean(json, Class.forName(hermes.getType()));
             po.setData(o);
         } catch (Throwable ignored) {
         }
@@ -181,7 +181,7 @@ public class EventPO implements Serializable {
         EventPO po = new EventPO();
         po.setId(hermes.getId());
         po.setType(hermes.getType());
-        po.setData(Jackson.json.toStr(hermes.getData()));
+        po.setData(Json.instance.toStr(hermes.getData()));
         po.setStatus(HermesStatus.codeOf(hermes.getStatus()));
         po.setSendBy(hermes.getSendFrom());
         po.setSendTo(String.join(",",hermes.getSendTo()));

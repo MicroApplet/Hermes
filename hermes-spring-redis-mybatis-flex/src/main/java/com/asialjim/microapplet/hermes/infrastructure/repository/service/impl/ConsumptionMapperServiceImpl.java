@@ -18,6 +18,7 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 
 import com.asialjim.microapplet.hermes.ConsumptionStatus;
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.ConsumptionBaseMapper;
+import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.ConsumptionMapperService;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
@@ -41,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * This class extends MyBatis Flex's ServiceImpl, implements the ConsumptionMapperService interface,
  * providing service layer operation implementations for consumption record entities,
  * including event acquisition, processing status updates, log recording, and other functions.
- * 
+ *
  * @author Asial Jim
  * @version 1.0.0
  * @since 1.0.0
@@ -67,7 +68,7 @@ public class ConsumptionMapperServiceImpl
      * <p>
      * This method queries and returns an available event ID for the specified service from the database,
      * using optimistic locking to prevent concurrency issues.
-     * 
+     *
      * @param serviceName 服务名称
      * @return 事件ID，如果没有可用事件则返回null
      * @since 1.0.0
@@ -79,7 +80,7 @@ public class ConsumptionMapperServiceImpl
                 .forUpdateNoWait()
                 .select(ConsumptionPO::getEventId)
                 .where(ConsumptionPO::getSubscriber).eq(serviceName)
-                .where(ConsumptionPO::getStatus).le(ConsumptionStatus.PENDING)
+                .where(ConsumptionPO::getStatus).le(ConsumptionStatus.PENDING.getId())
                 .oneAs(String.class);
     }
 
@@ -91,8 +92,8 @@ public class ConsumptionMapperServiceImpl
      * <p>
      * This method marks the specified event as having been retrieved by the specified service,
      * preventing duplicate consumption.
-     * 
-     * @param eventId 事件ID
+     *
+     * @param eventId     事件ID
      * @param serviceName 服务名称
      * @since 1.0.0
      */
@@ -117,8 +118,8 @@ public class ConsumptionMapperServiceImpl
      * This method checks if the combination of the specified event ID and service name is available,
      * used to determine if an event can be consumed. It also uses Redis to implement distributed locking
      * to prevent concurrency issues.
-     * 
-     * @param id 事件ID
+     *
+     * @param id          事件ID
      * @param serviceName 服务名称
      * @return 如果可用则返回true，否则返回false
      * @since 1.0.0
@@ -134,7 +135,7 @@ public class ConsumptionMapperServiceImpl
         boolean available = queryChain()
                 .where(ConsumptionPO::getEventId).eq(id)
                 .where(ConsumptionPO::getSubscriber).eq(serviceName)
-                .where(ConsumptionPO::getStatus).lt(ConsumptionStatus.PENDING)
+                .where(ConsumptionPO::getStatus).le(ConsumptionStatus.PENDING.getId())
                 .exists();
         if (available)
             stringRedisTemplate.opsForValue().set(key, "lk", 30, TimeUnit.MINUTES);
@@ -148,8 +149,8 @@ public class ConsumptionMapperServiceImpl
      * Mark event as being processed
      * <p>
      * This method marks the specified event as being processed by the specified application.
-     * 
-     * @param eventId 事件ID
+     *
+     * @param eventId     事件ID
      * @param application 应用名称
      * @since 1.0.0
      */
@@ -174,11 +175,10 @@ public class ConsumptionMapperServiceImpl
      * <p>
      * This method marks the specified event as having failed processing in the specified application,
      * and records the error information.
-     * 
-     * @param eventId 事件ID
+     *
+     * @param eventId     事件ID
      * @param application 应用名称
-     * @param err 错误信息
-     * @version 1.0.0
+     * @param err         错误信息
      * @since 1.0.0
      */
     @Override
@@ -201,14 +201,13 @@ public class ConsumptionMapperServiceImpl
      * Mark event processing as successful
      * <p>
      * This method marks the specified event as having been successfully processed in the specified application.
-     * 
-     * @param eventId 事件ID
+     *
+     * @param eventId     事件ID
      * @param application 应用名称
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Override
-    public void succeedEvent(String eventId, String application) {
+    public ConsumptionCount succeedEvent(String eventId, String application) {
         boolean update = updateChain()
                 .set(ConsumptionPO::getStatus, ConsumptionStatus.SUCCEEDED)
                 .set(ConsumptionPO::getCode, "0")
@@ -218,6 +217,21 @@ public class ConsumptionMapperServiceImpl
                 .update();
         if (log.isDebugEnabled())
             log.info("Hermes: {} for Service: {}  had succeed, update result: {}", eventId, application, update);
+
+        ConsumptionStatus[] values = ConsumptionStatus.values();
+        int len = values.length + 1;
+        String[] columns = new String[len];
+        columns[0] = "COUNT(1) AS total";
+        for (int i = 0; i < values.length; i++) {
+            ConsumptionStatus value = values[i];
+            int index = i + 1;
+            columns[index] = "SUM(CASE WHEN status = '" + value.getId() + "' THEN 1 ELSE 0 END) AS " + value.getCode();
+        }
+
+        return queryChain()
+                .select(columns)
+                .where(ConsumptionPO::getEventId).eq(eventId)
+                .oneAs(ConsumptionCount.class);
     }
 
     /**
@@ -229,12 +243,11 @@ public class ConsumptionMapperServiceImpl
      * <p>
      * This method records log information for event consumption, including event ID, service name, status code, and error information,
      * and updates the event's consumption status based on the status code.
-     * 
-     * @param id 事件ID
+     *
+     * @param id          事件ID
      * @param serviceName 服务名称
-     * @param code 状态码
-     * @param err 错误信息
-     * @version 1.0.0
+     * @param code        状态码
+     * @param err         错误信息
      * @since 1.0.0
      */
     @Override
@@ -260,10 +273,9 @@ public class ConsumptionMapperServiceImpl
      * <p>
      * This method creates multiple consumption records for the specified event,
      * one record for each service, with the status initialized to pending.
-     * 
-     * @param id 事件ID
+     *
+     * @param id     事件ID
      * @param sendTo 服务名称集合
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Override

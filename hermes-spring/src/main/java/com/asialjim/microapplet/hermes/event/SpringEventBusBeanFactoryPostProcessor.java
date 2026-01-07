@@ -17,18 +17,17 @@
 package com.asialjim.microapplet.hermes.event;
 
 import com.asialjim.microapplet.hermes.annotation.OnEvent;
-import com.asialjim.microapplet.hermes.listener.Listener;
-import com.asialjim.microapplet.hermes.listener.MethodListener;
+import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.core.Ordered;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -50,21 +49,26 @@ import java.util.Objects;
  * @version 1.0.0
  * @since 1.0.0
  */
+@Order
 @Component
-@Order(Ordered.LOWEST_PRECEDENCE)
 public class SpringEventBusBeanFactoryPostProcessor
-        implements BeanDefinitionRegistryPostProcessor {
+        implements BeanDefinitionRegistryPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+
+    @Override
+    public void onApplicationEvent(ContextRefreshedEvent event) {
+        HermesRepository bean = event.getApplicationContext().getBean(HermesRepository.class);
+        EventBus.register2Hermes(bean);
+    }
 
     /**
      * 处理Bean定义注册表，扫描带有@OnEvent注解的方法
      * Process Bean definition registry, scan methods with @OnEvent annotation
      *
      * @param beanFactory Bean定义注册表
-     *                   Bean definition registry
+     *                    Bean definition registry
      * @throws BeansException 如果处理过程中发生异常
-     *                       If an exception occurs during processing
+     *                        If an exception occurs during processing
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
@@ -86,21 +90,20 @@ public class SpringEventBusBeanFactoryPostProcessor
      * Process a single method, check if it has @OnEvent annotation, and register MethodListenerFactory
      *
      * @param beanFactory Bean定义注册表
-     *                   Bean definition registry
+     *                    Bean definition registry
      * @param beanName    Bean的名称
-     *                   Bean name
+     *                    Bean name
      * @param method      要处理的方法
-     *                   Method to process
+     *                    Method to process
      * @throws IllegalStateException 如果@OnEvent注解标记的方法不符合要求
-     *                             If the method marked with @OnEvent annotation does not meet requirements
+     *                               If the method marked with @OnEvent annotation does not meet requirements
      * @since 1.0.0
-     * @version 1.0.0
      */
     private void proccessMethod(BeanDefinitionRegistry beanFactory, String beanName, Method method) {
         OnEvent onEvent = method.getAnnotation(OnEvent.class);
         if (Objects.isNull(onEvent))
             return;
-        
+
         // 检查方法修饰符
         int modifiers = method.getModifiers();
         if (!Modifier.isPublic(modifiers))
@@ -108,7 +111,7 @@ public class SpringEventBusBeanFactoryPostProcessor
 
         if (Modifier.isStatic(modifiers))
             throw new IllegalStateException("Method " + method.getName() + "can not be static,Cause it was Tagged by " + OnEvent.class);
-        
+
         if (Modifier.isAbstract(modifiers))
             throw new IllegalStateException("Method " + method.getName() + "can not be abstract,Cause it was Tagged by " + OnEvent.class);
 
@@ -125,23 +128,22 @@ public class SpringEventBusBeanFactoryPostProcessor
      * 注册MethodListenerFactory Bean定义
      * Register MethodListenerFactory Bean definition
      *
-     * @param beanFactory  Bean定义注册表
-     *                   Bean definition registry
-     * @param beanName     包含@OnEvent方法的Bean名称
-     *                   Bean name containing @OnEvent method
-     * @param method       带有@OnEvent注解的方法
-     *                   Method with @OnEvent annotation
+     * @param beanFactory    Bean定义注册表
+     *                       Bean definition registry
+     * @param beanName       包含@OnEvent方法的Bean名称
+     *                       Bean name containing @OnEvent method
+     * @param method         带有@OnEvent注解的方法
+     *                       Method with @OnEvent annotation
      * @param parameterTypes 方法的参数类型数组
-     *                      Method parameter type array
-     * @param order        监听器的执行顺序
-     *                   Listener execution order
+     *                       Method parameter type array
+     * @param order          监听器的执行顺序
+     *                       Listener execution order
      * @since 1.0.0
-     * @version 1.0.0
      */
     private void register(BeanDefinitionRegistry beanFactory, String beanName, Method method, Class<?>[] parameterTypes, int order) {
         Class<?> parameterType = parameterTypes[0];
-        String listenerBeanName = beanName + "#" + method.getName() +"("+ parameterType.getSimpleName()+")";
-        
+        String listenerBeanName = beanName + "#" + method.getName() + "(" + parameterType.getSimpleName() + ")";
+
         // 创建MethodListenerFactory的Bean定义
         BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodListenerFactory.class);
         builder.addPropertyValue("beanName", listenerBeanName);
@@ -150,7 +152,7 @@ public class SpringEventBusBeanFactoryPostProcessor
         builder.addPropertyValue("eventType", parameterType);
         builder.addPropertyValue("order", order);
         builder.setInitMethodName("init");
-        
+
         AbstractBeanDefinition listenerDefinition = builder.getBeanDefinition();
         beanFactory.registerBeanDefinition(listenerBeanName, listenerDefinition);
     }
@@ -164,11 +166,10 @@ public class SpringEventBusBeanFactoryPostProcessor
      * This method does not perform any operations in the current class, because all processing is completed in postProcessBeanDefinitionRegistry
      *
      * @param beanFactory 配置列表的BeanFactory
-     *                   Configurable listable BeanFactory
+     *                    Configurable listable BeanFactory
      * @throws BeansException 如果处理过程中发生异常
-     *                       If an exception occurs during processing
+     *                        If an exception occurs during processing
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

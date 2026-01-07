@@ -18,17 +18,22 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 
 import com.asialjim.microapplet.hermes.HermesStatus;
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.EventBaseMapper;
+import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.EventMapperService;
-import com.asialjim.util.jackson.Jackson;
+import com.asialjim.util.jackson.Json;
+import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -45,14 +50,14 @@ public class EventMapperServiceImpl
         String json = stringRedisTemplate.opsForValue().get(key);
 
         if (StringUtils.isNotBlank(json)) {
-            return Jackson.json.toBean(json, EventPO.class);
+            return Json.instance.toBean(json, EventPO.class);
         }
 
         EventPO byId = getById(hermesId);
         if (Objects.isNull(byId))
             byId = new EventPO().setData("-");
 
-        json = Jackson.json.toStr(byId);
+        json = Json.instance.toStr(byId);
         stringRedisTemplate.opsForValue().set(key, json, 2, TimeUnit.HOURS);
         return byId;
     }
@@ -62,7 +67,7 @@ public class EventMapperServiceImpl
         save(po);
 
         String key = "tmp:hermes:by-id:" + po.getId();
-        String json = Jackson.json.toStr(po);
+        String json = Json.instance.toStr(po);
         stringRedisTemplate.opsForValue().set(key, json, 6, TimeUnit.HOURS);
     }
 
@@ -75,5 +80,30 @@ public class EventMapperServiceImpl
 
         if (log.isDebugEnabled())
             log.debug("事件：{} 处理中：{}", eventId, update);
+    }
+
+    @Override
+    public void succeedEvent(String eventId, ConsumptionCount count) {
+        EventMapperService mapperService = (EventMapperService) AopContext.currentProxy();
+        EventPO event = mapperService.queryById(eventId);
+        int subServiceNum = Optional.ofNullable(event.getSubServiceNum()).orElse(0);
+        long succeeded = count.getSucceeded();
+        long failed = count.getFailed();
+
+        UpdateChain<EventPO> chian = updateChain();
+        chian.where(EventPO::getId).eq(eventId);
+
+        if (failed > 0)
+            chian.set(EventPO::getStatus, HermesStatus.PARTIALLY_FAILED);
+
+        if (NumberUtils.compare(subServiceNum, succeeded) == 0)
+            chian.set(EventPO::getStatus, HermesStatus.COMPLETED);
+
+        chian.set(EventPO::getSucceedServiceNum, succeeded);
+        chian.set(EventPO::getFailedServiceNum, failed);
+
+        boolean update = chian.update();
+        if (log.isDebugEnabled())
+            log.info("修改事件：{} 状态结果：{}", eventId, update);
     }
 }

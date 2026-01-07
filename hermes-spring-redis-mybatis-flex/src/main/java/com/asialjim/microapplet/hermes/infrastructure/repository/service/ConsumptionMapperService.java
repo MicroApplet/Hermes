@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.repository.service;
 
+import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionPO;
 import com.mybatisflex.core.service.IService;
 
@@ -158,8 +159,9 @@ public interface ConsumptionMapperService
      * 
      * @param eventId 事件ID
      * @param application 应用名称
-     * @version 1.0.0
      * @since 1.0.0
      */
-    void succeedEvent(String eventId, String application);
+    ConsumptionCount succeedEvent(String eventId, String application);
+
+
 }

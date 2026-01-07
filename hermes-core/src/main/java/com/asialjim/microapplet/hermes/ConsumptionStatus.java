@@ -34,37 +34,37 @@ public enum ConsumptionStatus implements Status {
      * 事件已成功投递到该服务,等待服务实例拉取并处理
      * Event has been successfully delivered to the service, waiting for service instance to pull and process
      */
-    PENDING(0, "PENDING", "待消费"),
+    PENDING(0, "pending", "待消费"),
     /**
      * 服务示例已经拉取事件，业务逻辑正在执行中
      * Service instance has pulled the event, business logic is being executed
      */
-    PROCESSING(10, "PROCESSING", "消费中"),
+    PROCESSING(10, "processing", "消费中"),
     /**
      * 消费成功
      * Consumption succeeded
      */
-    SUCCEEDED(20, "SUCCEEDED", "消费成功"),
+    SUCCEEDED(20, "succeeded", "消费成功"),
     /**
      * 消费失败
      * Consumption failed
      */
-    FAILED(30, "FAILED", "消费失败"),
+    FAILED(30, "failed", "消费失败"),
     /**
      * 重试中
      * Retrying
      */
-    RETRYING(40, "RETRYING", "重试中"),
+    RETRYING(40, "retrying", "重试中"),
     /**
      * 消费失败，且已经达到最大重试次数,需要人工干预
      * Consumption failed and has reached the maximum number of retries, manual intervention required
      */
-    DEAD(50, "DEAD", "已死信"),
+    DEAD(50, "dead", "已死信"),
     /**
      * 等待归档
      * Waiting for archiving
      */
-    ARCHIVE(100, "ARCHIVE", "等待归档");
+    ARCHIVE(100, "archive", "等待归档");
     
     /**
      * 状态ID

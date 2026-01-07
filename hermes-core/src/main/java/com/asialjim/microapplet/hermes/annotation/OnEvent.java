@@ -30,6 +30,7 @@ import java.lang.annotation.*;
  * @version 1.0.0
  * @since 1.0.0
  */
+@Inherited
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -42,7 +43,6 @@ public @interface OnEvent {
      * @return 执行顺序，值越小优先级越高
      *         Execution order, smaller value means higher priority
      * @since 1.0.0
-     * @version 1.0.0
      */
     int order() default 0;
 }
