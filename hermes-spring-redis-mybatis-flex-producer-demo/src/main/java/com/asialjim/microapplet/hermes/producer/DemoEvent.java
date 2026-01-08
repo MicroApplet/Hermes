@@ -24,10 +24,17 @@ import java.io.Serializable;
 
 /**
  * 事件示例
+ * Event Example
+ * <p>
+ * 该类是 Hermes 框架的事件示例类，
+ * 用于演示事件的定义和使用方式。
+ * <p>
+ * This class is the event example class of Hermes framework,
+ * used to demonstrate the definition and usage of events.
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2026/1/5, &nbsp;&nbsp; <em>version:1.0</em>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 2026-01-08
  */
 @Data
 @Accessors(chain = true)
@@ -36,6 +43,15 @@ public class DemoEvent implements Serializable {
     @Serial
     private static final long serialVersionUID = -7285390285174308478L;
 
+    /**
+     * 事件ID
+     * Event ID
+     */
     private String id;
+    
+    /**
+     * 事件名称
+     * Event name
+     */
     private String name;
 }

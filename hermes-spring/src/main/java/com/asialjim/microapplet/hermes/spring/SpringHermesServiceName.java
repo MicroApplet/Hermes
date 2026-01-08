@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -47,9 +47,9 @@ import org.springframework.stereotype.Component;
  * 4. ApplicationContext.getId()
  * 5. Default value "unknownService"
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Component
 public class SpringHermesServiceName implements HermesServiceName, ApplicationContextAware {
@@ -86,8 +86,7 @@ public class SpringHermesServiceName implements HermesServiceName, ApplicationCo
      *
      * @return 当前服务的名称
      *         Name of the current service
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public String serviceName() {

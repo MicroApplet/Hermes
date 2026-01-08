@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.util.Set;
 
 /**
  * Hermes事件仓库实现类
+ * Hermes Event Repository Implementation Class
  * <p>
  * 基于Redis和MyBatis Flex实现的HermesRepository接口实现
  * 负责事件的存储、查询、发布、注册等核心功能
@@ -50,10 +51,20 @@ import java.util.Set;
  * 3. 事件消费与状态管理
  * 4. 事件补偿消费
  * 5. 事件状态跟踪
+ * <p>
+ * Implementation of HermesRepository interface based on Redis and MyBatis Flex
+ * Responsible for core functions such as event storage, query, publishing, and registration
+ * <p>
+ * Core functions include:
+ * 1. Event publishing and storage
+ * 2. Event subscription and registration
+ * 3. Event consumption and status management
+ * 4. Event compensation consumption
+ * 5. Event status tracking
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2025/12/30, &nbsp;&nbsp; <em>version:1.0</em>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 2026-01-08
  */
 @Slf4j
 @Component
@@ -84,12 +95,17 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 标记事件正在被处理
+     * Mark event as being processed
      * <p>
      * 同时更新消费记录和事件记录的状态为处理中
+     * <p>
+     * Update the status of both consumption record and event record to processing
      *
      * @param eventId    事件ID
+     *                   Event ID
      * @param application 应用服务名称
-     * @since 2026/1/5
+     *                    Application service name
+     * @since 2026-01-08
      */
     @Override
     @Transactional
@@ -100,13 +116,19 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 记录事件处理失败
+     * Record event processing failure
      * <p>
      * 更新消费记录的状态为失败，并记录错误信息
+     * <p>
+     * Update the status of consumption record to failed and record error information
      *
      * @param eventId    事件ID
+     *                   Event ID
      * @param application 应用服务名称
+     *                    Application service name
      * @param err        错误信息
-     * @since 2026/1/5
+     *                   Error information
+     * @since 2026-01-08
      */
     @Override
     public void errorEvent(String eventId, String application, String err) {
@@ -115,12 +137,17 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 记录事件处理成功
+     * Record event processing success
      * <p>
      * 更新消费记录的状态为成功
+     * <p>
+     * Update the status of consumption record to successful
      *
      * @param eventId    事件ID
+     *                   Event ID
      * @param application 应用服务名称
-     * @since 2026/1/5
+     *                    Application service name
+     * @since 2026-01-08
      */
     @Override
     public void succeedEvent(String eventId, String application) {
@@ -130,11 +157,15 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 填充事件需要发送到的服务列表
+     * Populate the list of services that the event needs to be sent to
      * <p>
      * 根据事件类型查询订阅该事件的服务列表
+     * <p>
+     * Query the list of services that subscribe to this event type
      *
      * @param hermes 事件对象
-     * @since 2025/12/30
+     *               Event object
+     * @since 2026-01-08
      */
     @Override
     public void populateSendTo(Hermes<?> hermes) {
@@ -145,12 +176,17 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 注册服务对事件类型的订阅关系
+     * Register service subscription to event type
      * <p>
      * 将服务名称与事件类型的订阅关系保存到数据库
+     * <p>
+     * Save the subscription relationship between service names and event types to the database
      *
      * @param type         事件类型
+     *                     Event type
      * @param serviceNames 服务名称集合
-     * @since 2025/12/30
+     *                     Service name collection
+     * @since 2026-01-08
      */
     @Override
     public void register(Type type, Set<String> serviceNames) {
@@ -162,12 +198,17 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 为指定服务弹出一个待处理的事件
+     * Pop a pending event for the specified service
      * <p>
      * 从数据库中获取一个该服务待处理的事件，并更新其状态为处理中
+     * <p>
+     * Get a pending event for this service from the database and update its status to processing
      *
      * @param serviceName 服务名称
+     *                    Service name
      * @return 事件对象，若没有待处理事件则返回null
-     * @since 2025/12/30
+     *         Event object, returns null if there are no pending events
+     * @since 2026-01-08
      */
     @Override
     @Transactional
@@ -189,13 +230,19 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 根据事件ID和服务名称查询可用的事件
+     * Query available event by event ID and service name
      * <p>
      * 检查事件是否存在且未被同服务名的其他实例获取
+     * <p>
+     * Check if the event exists and has not been obtained by other instances with the same service name
      *
      * @param id          事件ID
+     *                    Event ID
      * @param serviceName 服务名称
+     *                    Service name
      * @return 可用的事件对象，若不可用则返回null
-     * @since 2025/12/30
+     *         Available event object, returns null if unavailable
+     * @since 2026-01-08
      */
     @Override
     public Hermes<?> queryAvailableHermesByIdAndServiceName(String id, String serviceName) {
@@ -213,14 +260,21 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 记录事件处理结果
+     * Record event processing result
      * <p>
      * 更新消费记录的状态、结果码和描述信息
+     * <p>
+     * Update the status, result code and description information of consumption record
      *
      * @param id          事件ID
+     *                    Event ID
      * @param serviceName 服务名称
+     *                    Service name
      * @param code        结果码
+     *                    Result code
      * @param err         结果描述
-     * @since 2025/12/30
+     *                    Result description
+     * @since 2026-01-08
      */
     @Override
     @Transactional
@@ -230,11 +284,15 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 执行事件补偿消费
+     * Execute event compensation consumption
      * <p>
      * 循环获取并处理该服务的待处理事件，直到没有待处理事件为止
+     * <p>
+     * Loop to get and process pending events for this service until there are no pending events
      *
      * @param serviceName 服务名称
-     * @since 2025/12/30
+     *                    Service name
+     * @since 2026-01-08
      */
     @Override
     public void reConsumption(String serviceName) {
@@ -252,12 +310,17 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 执行单次补偿消费
+     * Execute single compensation consumption
      * <p>
      * 从数据库中获取一个待处理事件，若存在则发布到事件总线
+     * <p>
+     * Get a pending event from the database and publish it to the event bus if it exists
      *
      * @param serviceName 服务名称
+     *                    Service name
      * @return 处理的事件对象，若没有待处理事件则返回null
-     * @since 2025/12/30
+     *         Processed event object, returns null if there are no pending events
+     * @since 2026-01-08
      */
     @Transactional
     public Hermes<?> doReConsumption(String serviceName) {
@@ -272,11 +335,15 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 事件发送前的预处理
+     * Preprocessing before event sending
      * <p>
      * 将事件保存到数据库，并生成事件ID
+     * <p>
+     * Save the event to the database and generate an event ID
      *
      * @param hermes 事件对象
-     * @since 2025/12/30
+     *               Event object
+     * @since 2026-01-08
      */
     @Override
     public void beforeSend(Hermes<?> hermes) {
@@ -287,11 +354,15 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 执行事件发送
+     * Execute event sending
      * <p>
      * 为事件创建消费记录，准备发送给订阅该事件的服务
+     * <p>
+     * Create consumption records for the event, ready to send to services that subscribe to this event
      *
      * @param hermes 事件对象
-     * @since 2025/12/30
+     *               Event object
+     * @since 2026-01-08
      */
     @Override
     public void doSend(Hermes<?> hermes) {
@@ -301,11 +372,15 @@ public class HermesRepositoryImpl implements HermesRepository {
 
     /**
      * 发布事件通知
+     * Publish event notification
      * <p>
      * 通过Redis发布事件ID，通知订阅该事件的服务
+     * <p>
+     * Publish the event ID through Redis to notify services that subscribe to this event
      *
      * @param hermes 事件对象
-     * @since 2025/12/30
+     *               Event object
+     * @since 2026-01-08
      */
     @Override
     public void publish(Hermes<?> hermes) {

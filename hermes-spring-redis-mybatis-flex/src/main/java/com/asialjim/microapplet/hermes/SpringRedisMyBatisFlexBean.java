@@ -31,9 +31,9 @@ import org.springframework.context.annotation.Configuration;
  * This class is the automatic configuration entry class of Hermes framework based on Spring Boot, Redis and MyBatis Flex,
  * which scans and loads all related components through {@link org.springframework.context.annotation.ComponentScan @ComponentScan} annotation.
  * 
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Configuration
 @ComponentScan

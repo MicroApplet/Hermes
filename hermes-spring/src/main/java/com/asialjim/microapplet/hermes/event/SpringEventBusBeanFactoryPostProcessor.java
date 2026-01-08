@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -45,9 +45,9 @@ import java.util.Objects;
  * Implements BeanDefinitionRegistryPostProcessor interface, responsible for scanning all methods with @OnEvent annotation
  * in Bean definitions and registering MethodListenerFactory for them when the Spring container starts
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Order
 @Component
@@ -68,7 +68,7 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                    Bean definition registry
      * @throws BeansException 如果处理过程中发生异常
      *                        If an exception occurs during processing
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
@@ -97,7 +97,7 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                    Method to process
      * @throws IllegalStateException 如果@OnEvent注解标记的方法不符合要求
      *                               If the method marked with @OnEvent annotation does not meet requirements
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     private void proccessMethod(BeanDefinitionRegistry beanFactory, String beanName, Method method) {
         OnEvent onEvent = method.getAnnotation(OnEvent.class);
@@ -138,7 +138,7 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                       Method parameter type array
      * @param order          监听器的执行顺序
      *                       Listener execution order
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     private void register(BeanDefinitionRegistry beanFactory, String beanName, Method method, Class<?>[] parameterTypes, int order) {
         Class<?> parameterType = parameterTypes[0];
@@ -169,7 +169,7 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                    Configurable listable BeanFactory
      * @throws BeansException 如果处理过程中发生异常
      *                        If an exception occurs during processing
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {

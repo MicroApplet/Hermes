@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -37,9 +37,9 @@ import java.util.Objects;
  * Hermes 事件总线Spring集成
  * Hermes Event Bus Spring Integration
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 //@Order
 //@Component
@@ -53,8 +53,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
      *
      * @param event 上下文刷新事件
      *             Context refreshed event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public void onApplicationEvent(@SuppressWarnings("NullableProblems") ContextRefreshedEvent event) {
@@ -68,8 +67,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
      *
      * @return HermesServiceName实例
      *         HermesServiceName instance
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private HermesServiceName name() {
         return this.applicationContext.getBean(HermesServiceName.class);
@@ -87,8 +85,7 @@ public class SpringEventBusBridge implements BeanPostProcessor, ApplicationConte
      *         Processed Bean instance
      * @throws IllegalStateException 如果@OnEvent注解标记的方法不符合要求
      *                             If the method marked with @OnEvent annotation does not meet requirements
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public Object postProcessAfterInitialization(

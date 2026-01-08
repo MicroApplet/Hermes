@@ -19,6 +19,20 @@ package com.asialjim.microapplet.hermes;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * Hermes生产者应用主类
+ * Hermes Producer Application Main Class
+ * <p>
+ * 该类是 Hermes 框架的生产者端应用示例，
+ * 通过 Spring Boot 启动并自动配置 Hermes 相关组件。
+ * <p>
+ * This class is the producer-side application example of Hermes framework,
+ * which starts through Spring Boot and automatically configures Hermes-related components.
+ *
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 2026-01-08
+ */
 @SpringBootApplication
 public class ProducerApp {
     public static void main(String[] args) {

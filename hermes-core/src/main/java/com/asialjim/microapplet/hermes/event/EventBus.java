@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 事件总线
  * Event Bus
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Slf4j
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -49,8 +49,7 @@ public class EventBus {
      *
      * @param hermesRepository {@link HermesRepository hermesRepository}
      *                         Hermes repository instance
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     public static void register2Hermes(HermesRepository hermesRepository) {
         if (Objects.isNull(hermesRepository)) {
@@ -92,8 +91,7 @@ public class EventBus {
      *                    Event object
      * @param <E>         事件类型
      *                    Event type
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     public static <E> void push(String id, boolean push2global, E event) {
         if (Objects.isNull(event)) return;
@@ -127,8 +125,7 @@ public class EventBus {
      *              Event object
      * @param <E>   事件类型
      *              Event type
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     public static <E> void push(String id, E event) {
         push(id, true, event);
@@ -146,8 +143,7 @@ public class EventBus {
      *                 Listener instance
      * @param <E>      事件类型
      *                 Event type
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private static <E> void doPush(String id, E event, Listener<E> listener) {
         if (StringUtils.isBlank(id))
@@ -164,8 +160,7 @@ public class EventBus {
      *              Event object
      * @param <E>   事件类型
      *              Event type
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     public static <E> void push(E event) {
         push(null, event);
@@ -177,8 +172,7 @@ public class EventBus {
      *
      * @param listener 监听器实例
      *                 Listener instance
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     public static void register(Listener<?> listener) {
         if (Objects.isNull(listener)) return;

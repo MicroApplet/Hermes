@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -40,9 +40,9 @@ import java.util.Objects;
  * Implements FactoryBean interface, responsible for creating MethodListener objects according to configuration
  * Implements ApplicationContextAware interface, gets Spring application context
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Slf4j
 @Setter
@@ -89,7 +89,7 @@ public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, Ap
      *
      * @return MethodListener实例
      *         MethodListener instance
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public MethodListener<?> getObject() {
@@ -108,7 +108,7 @@ public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, Ap
      * <p>
      * Create MethodListener instance and register it to event bus
      *
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     @PostConstruct
     public void init() {
@@ -121,7 +121,7 @@ public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, Ap
      *
      * @return MethodListener.class
      *         MethodListener.class
-     * @since 1.0.0
+     * @since 2026-01-08
      */
     @Override
     public Class<?> getObjectType() {

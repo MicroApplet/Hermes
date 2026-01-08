@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ import java.util.concurrent.TimeUnit;
  * 顶级接口，声明为监听器
  * Top-level interface, declared as a listener
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  * @param <E> 事件数据类型
  *            Event data type
  */
@@ -49,8 +49,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @return 日志记录器实例
      *         Logger instance
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default Logger log() {
         return LoggerFactory.getLogger(this.getClass());
@@ -62,8 +61,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @return 执行顺序，值越小优先级越高
      *         Execution order, smaller value means higher priority
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default int getOrder() {
         return 0;
@@ -77,8 +75,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *          Another listener instance
      * @return 比较结果，负数表示当前监听器优先级更高
      *         Comparison result, negative number means current listener has higher priority
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     @Override
     default int compareTo(Listener<E> o) {
@@ -91,8 +88,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @return 服务名称实例
      *         Service name instance
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     HermesServiceName getServiceName();
 
@@ -100,8 +96,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      * 监听器注册到本地事件总线
      * Register listener to local event bus
      *
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     @PostConstruct
     default void register() {
@@ -114,8 +109,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @param event 事件对象
      *              Event object
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void onEvent(E event) {
         StopWatch stopWatch = new StopWatch();
@@ -131,8 +125,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *              Event ID
      * @param event 事件对象
      *              Event object
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void onEvent(String id, E event) {
         StopWatch stopWatch = new StopWatch();
@@ -148,8 +141,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *              Event object
      * @return 包装后的Hermes事件
      *         Wrapped Hermes event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private Hermes<E> wrapHermes(E event) {
         if (event instanceof Hermes<?> hermes)
@@ -174,8 +166,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *                  Stopwatch for measuring processing time
      * @param hermes    包装后的Hermes事件
      *                  Wrapped Hermes event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private void onHermes(E event, StopWatch stopWatch, Hermes<E> hermes) {
         try {
@@ -218,8 +209,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @param ignoredEvent 包装后的Hermes事件
      *                     Wrapped Hermes event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void before(Hermes<E> ignoredEvent) {
         // do nothing here
@@ -233,8 +223,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *              Wrapped Hermes event
      * @throws Throwable 事件处理过程中可能抛出的异常
      *                   Exception that may be thrown during event processing
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     void doOnEvent(Hermes<E> event) throws Throwable;
 
@@ -246,8 +235,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *                     Wrapped Hermes event
      * @param ignoredEx    事件处理过程中抛出的异常
      *                     Exception thrown during event processing
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void onError(Hermes<E> ignoredEvent, Throwable ignoredEx) {
         // do nothing here default
@@ -259,8 +247,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @param ignoredEvent 包装后的Hermes事件
      *                     Wrapped Hermes event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void onFinal(Hermes<E> ignoredEvent) {
         // do nothing here default
@@ -272,8 +259,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @param event 包装后的Hermes事件
      *              Wrapped Hermes event
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default void onAfter(Hermes<E> event){
         // do nothing here default
@@ -285,8 +271,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @return 事件类型集合
      *         Set of event types
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default Set<Type> eventType() {
         Set<Type> res = new HashSet<>();
@@ -317,8 +302,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *
      * @return 是否为全局监听器
      *         Whether it is a global listener
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     default boolean globalListener() {
         Set<Type> types = eventType();
@@ -338,8 +322,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *             Type object
      * @param res  结果集合
      *             Result set
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private static void addType(Type type, Set<Type> res) {
         if (Objects.isNull(type))
@@ -368,8 +351,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *                Raw type object
      * @return 是否为Listener类型
      *         Whether it is a Listener type
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private static boolean candidateType(Type rawType) {
         if (Objects.isNull(rawType))
@@ -393,8 +375,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *              Set of generic interfaces
      * @param clazz 类对象
      *              Class object
-     * @since 1.0.0
-     * @version 1.0.0
+     * @since 2026-01-08
      */
     private static void genericInterfaces(Set<Type> types, Class<?> clazz) {
         if (Objects.isNull(types) || Objects.isNull(clazz))

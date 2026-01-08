@@ -1,5 +1,5 @@
 /*
- *    Copyright 2014-2025 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -32,9 +32,9 @@ import java.util.Set;
  *
  * @param <E> 事件数据的类型
  *            The type of event data
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
  * @version 1.0.0
- * @since 1.0.0
+ * @since 2026-01-08
  */
 @Data
 @Accessors(chain = true)
@@ -96,6 +96,7 @@ public final class Hermes<E> implements Serializable {
      *
      * @return 如果是全局事件返回true，否则返回false，默认值为false
      *         Returns true if it is a global event, otherwise returns false, default value is false
+     * @since 2026-01-08
      */
     public boolean global(){
         return Optional.ofNullable(this.global).orElse(Boolean.FALSE);
@@ -125,6 +126,7 @@ public final class Hermes<E> implements Serializable {
      *
      * @return 服务名称集合，如果为null则返回空集合
      *         Set of service names, returns an empty set if null
+     * @since 2026-01-08
      */
     public Set<String> getSendTo(){
         return Optional.ofNullable(sendTo).orElseGet(HashSet::new);

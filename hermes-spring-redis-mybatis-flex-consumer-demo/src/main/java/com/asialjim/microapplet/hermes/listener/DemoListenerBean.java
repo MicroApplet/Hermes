@@ -21,13 +21,32 @@ import org.springframework.stereotype.Component;
 
 /**
  * 事件监听示例
+ * Event Listener Example
+ * <p>
+ * 该类是 Hermes 框架的事件监听器示例，
+ * 通过 @OnEvent 注解标记方法来监听指定类型的事件。
+ * <p>
+ * This class is the event listener example of Hermes framework,
+ * which listens to events of specified types through methods marked with @OnEvent annotation.
  *
- * @author <a href="mailto:asialjim@hotmail.com">Asial Jim</a>
- * @version 1.0
- * @since 2026/1/5, &nbsp;&nbsp; <em>version:1.0</em>
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 2026-01-08
  */
 @Component
 public class DemoListenerBean {
+    /**
+     * 处理DemoEvent事件
+     * Handle DemoEvent event
+     * <p>
+     * 通过 @OnEvent 注解标记，当有 DemoEvent 类型的事件发布时，该方法会被自动调用。
+     * <p>
+     * Marked with @OnEvent annotation, this method will be automatically called when an event of type DemoEvent is published.
+     *
+     * @param event DemoEvent事件对象
+     *              DemoEvent event object
+     * @since 2026-01-08
+     */
     @OnEvent
     public void handleDemoEvent(DemoEvent event) {
         System.out.println("Received event: " + event);
