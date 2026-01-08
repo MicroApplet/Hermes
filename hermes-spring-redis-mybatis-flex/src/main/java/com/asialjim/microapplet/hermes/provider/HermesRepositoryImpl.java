@@ -16,8 +16,10 @@
 
 package com.asialjim.microapplet.hermes.provider;
 
+import com.asialjim.microapplet.hermes.annotation.OnEvent;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
+import com.asialjim.microapplet.hermes.event.Register2HermesSucceed;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.ConsumptionMapperService;
@@ -35,6 +37,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -74,19 +77,19 @@ public class HermesRepositoryImpl implements HermesRepository {
      */
     @Resource
     private SubscriberMapperService subscriberMapperService;
-    
+
     /**
      * 消费记录服务
      */
     @Resource
     private ConsumptionMapperService consumptionMapperService;
-    
+
     /**
      * 事件服务
      */
     @Resource
     private EventMapperService eventMapperService;
-    
+
     /**
      * Redis模板，用于发布事件通知
      */
@@ -101,8 +104,8 @@ public class HermesRepositoryImpl implements HermesRepository {
      * <p>
      * Update the status of both consumption record and event record to processing
      *
-     * @param eventId    事件ID
-     *                   Event ID
+     * @param eventId     事件ID
+     *                    Event ID
      * @param application 应用服务名称
      *                    Application service name
      * @since 2026-01-08
@@ -110,8 +113,8 @@ public class HermesRepositoryImpl implements HermesRepository {
     @Override
     @Transactional
     public void processingEvent(String eventId, String application) {
-        this.consumptionMapperService.processingEvent(eventId,application);
-        this.eventMapperService.processingEvent(eventId,application);
+        this.consumptionMapperService.processingEvent(eventId, application);
+        this.eventMapperService.processingEvent(eventId, application);
     }
 
     /**
@@ -122,17 +125,17 @@ public class HermesRepositoryImpl implements HermesRepository {
      * <p>
      * Update the status of consumption record to failed and record error information
      *
-     * @param eventId    事件ID
-     *                   Event ID
+     * @param eventId     事件ID
+     *                    Event ID
      * @param application 应用服务名称
      *                    Application service name
-     * @param err        错误信息
-     *                   Error information
+     * @param err         错误信息
+     *                    Error information
      * @since 2026-01-08
      */
     @Override
     public void errorEvent(String eventId, String application, String err) {
-        this.consumptionMapperService.errorEvent(eventId,application,err);
+        this.consumptionMapperService.errorEvent(eventId, application, err);
     }
 
     /**
@@ -143,8 +146,8 @@ public class HermesRepositoryImpl implements HermesRepository {
      * <p>
      * Update the status of consumption record to successful
      *
-     * @param eventId    事件ID
-     *                   Event ID
+     * @param eventId     事件ID
+     *                    Event ID
      * @param application 应用服务名称
      *                    Application service name
      * @since 2026-01-08
@@ -152,7 +155,7 @@ public class HermesRepositoryImpl implements HermesRepository {
     @Override
     public void succeedEvent(String eventId, String application) {
         ConsumptionCount consumptionCount = this.consumptionMapperService.succeedEvent(eventId, application);
-        this.eventMapperService.succeedEvent(eventId,consumptionCount);
+        this.eventMapperService.succeedEvent(eventId, consumptionCount);
     }
 
     /**
@@ -196,6 +199,18 @@ public class HermesRepositoryImpl implements HermesRepository {
         this.subscriberMapperService.register(typeName, serviceNames);
     }
 
+    @OnEvent(order = Integer.MAX_VALUE, jvmOnly = true, async = true)
+    public void onRegister2HermesSucceed(Register2HermesSucceed succeed) {
+        // 服务      对哪些感兴趣
+        Map<String, Set<String>> serviceSubTypes = succeed.getServiceSubTypes();
+        // TODO 考虑是否要对 注册表做减法，
+        // TODO
+        // TODO 比如：
+        // TODO     版本1中，服务 A 关注了事件 a,b,c
+        // TODO     版本2中，服务 A 关注了事件 b,c
+        // TODO     此时需要考虑是否在注册表中将事件 a 从A服务关注的表中去除？
+    }
+
     /**
      * 为指定服务弹出一个待处理的事件
      * Pop a pending event for the specified service
@@ -207,7 +222,7 @@ public class HermesRepositoryImpl implements HermesRepository {
      * @param serviceName 服务名称
      *                    Service name
      * @return 事件对象，若没有待处理事件则返回null
-     *         Event object, returns null if there are no pending events
+     * Event object, returns null if there are no pending events
      * @since 2026-01-08
      */
     @Override
@@ -241,7 +256,7 @@ public class HermesRepositoryImpl implements HermesRepository {
      * @param serviceName 服务名称
      *                    Service name
      * @return 可用的事件对象，若不可用则返回null
-     *         Available event object, returns null if unavailable
+     * Available event object, returns null if unavailable
      * @since 2026-01-08
      */
     @Override
@@ -319,7 +334,7 @@ public class HermesRepositoryImpl implements HermesRepository {
      * @param serviceName 服务名称
      *                    Service name
      * @return 处理的事件对象，若没有待处理事件则返回null
-     *         Processed event object, returns null if there are no pending events
+     * Processed event object, returns null if there are no pending events
      * @since 2026-01-08
      */
     @Transactional

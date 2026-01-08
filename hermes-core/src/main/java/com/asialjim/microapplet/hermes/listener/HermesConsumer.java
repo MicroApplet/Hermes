@@ -69,7 +69,6 @@ public abstract class HermesConsumer {
      * @param hermesRepository Hermes仓库
      *                        Hermes repository
      * @since 1.0.0
-     * @version 1.0.0
      */
     protected HermesConsumer(
              ScheduledExecutorService scheduler, HermesServiceName hermesServiceName, HermesRepository hermesRepository) {
@@ -83,7 +82,6 @@ public abstract class HermesConsumer {
      * Start consumer
      *
      * @since 1.0.0
-     * @version 1.0.0
      */
     @PostConstruct
     public final void start() {
@@ -99,7 +97,6 @@ public abstract class HermesConsumer {
      * Stop consumer
      *
      * @since 1.0.0
-     * @version 1.0.0
      */
     @PreDestroy
     public final void stop() {
@@ -134,7 +131,6 @@ public abstract class HermesConsumer {
      * @param id 事件ID
      *           Event ID
      * @since 1.0.0
-     * @version 1.0.0
      */
     private void onHermesReceived(String id) {
         Hermes<?> hermes = this.hermesRepository.queryAvailableHermesByIdAndServiceName(id, this.hermesServiceName.serviceName());

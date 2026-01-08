@@ -26,5 +26,5 @@ package com.asialjim.microapplet.hermes.listener;
  * @param <E> 事件类型
  *            Event type
  */
-public interface JVMListener<E> extends Listener<E>{
+public interface JvmOnlyListener<E> extends Listener<E>{
 }

@@ -19,13 +19,12 @@ package com.asialjim.microapplet.hermes.infrastructure.config.redis;
 import com.asialjim.microapplet.hermes.HermesServiceName;
 import com.asialjim.microapplet.hermes.listener.HermesListener;
 import com.asialjim.microapplet.hermes.listener.HermesProducer;
-import com.asialjim.microapplet.hermes.listener.RedisHermesConsumer;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
 import java.util.UUID;
@@ -58,7 +57,6 @@ public class RedisConfig {
      * @param hermesServiceName Hermes 服务名称组件，用于标识当前服务
      * @param hermesRepository Hermes 仓库，用于事件存储和管理
      * @return HermesListener 实例
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Bean(initMethod = "register")
@@ -82,7 +80,6 @@ public class RedisConfig {
      * @param hermesServiceName Hermes 服务名称组件，用于标识当前服务
      * @param hermesRepository Hermes 仓库，用于事件存储和管理
      * @return HermesProducer 实例
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Bean
@@ -108,7 +105,6 @@ public class RedisConfig {
      * This method creates a ScheduledExecutorService instance for executing scheduled tasks.
      * 
      * @return ScheduledExecutorService 实例
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Bean
@@ -125,23 +121,17 @@ public class RedisConfig {
      * <p>
      * This method creates a RedisMessageListenerContainer instance for listening to Redis message channels.
      * 
-     * @param redisHermesConsumer Redis Hermes 消费者，用于处理接收到的 Redis 消息
      * @param redisConnectionFactory Redis 连接工厂，用于创建 Redis 连接
      * @return RedisMessageListenerContainer 实例
-     * @version 1.0.0
      * @since 1.0.0
      */
     @Bean
+    @Order
     public RedisMessageListenerContainer redisMessageListenerContainer(
-            RedisHermesConsumer redisHermesConsumer,
             RedisConnectionFactory redisConnectionFactory) {
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(redisConnectionFactory);
-        container.addMessageListener(
-                redisHermesConsumer,
-                new ChannelTopic("hermes:id")
-        );
         return container;
     }
 }

@@ -17,7 +17,7 @@
 package com.asialjim.microapplet.hermes.event;
 
 import com.asialjim.microapplet.hermes.HermesServiceName;
-import com.asialjim.microapplet.hermes.listener.MethodListener;
+import com.asialjim.microapplet.hermes.listener.*;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Setter;
@@ -28,6 +28,7 @@ import org.springframework.context.ApplicationContextAware;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.concurrent.Executor;
 
 
 /**
@@ -46,58 +47,78 @@ import java.util.Objects;
  */
 @Slf4j
 @Setter
-public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, ApplicationContextAware {
+public class OnEventListenerFactory
+        implements FactoryBean<Listener<?>>, ApplicationContextAware {
     /**
      * MethodListener的Bean名称
      * Bean name of MethodListener
      */
     private String beanName;
-    
+
     /**
      * Spring应用上下文
      * Spring application context
      */
     private ApplicationContext applicationContext;
-    
+
     /**
      * 包含被@OnEvent注解标记方法的Bean实例
      * Bean instance containing method marked with @OnEvent annotation
      */
     private Object bean;
-    
+
     /**
      * 被@OnEvent注解标记的方法
      * Method marked with @OnEvent annotation
      */
     private Method method;
-    
+
     /**
      * 事件类型
      * Event type
      */
     private Class<?> eventType;
-    
+
     /**
      * 监听器执行顺序
      * Listener execution order
      */
     private int order;
+    private boolean jvmOnly;
+    private boolean async;
+    private Executor executor;
 
     /**
      * 创建并返回MethodListener实例
      * Create and return MethodListener instance
      *
      * @return MethodListener实例
-     *         MethodListener instance
+     * MethodListener instance
      * @since 2026-01-08
      */
     @Override
-    public MethodListener<?> getObject() {
+    public Listener<?> getObject() {
         if (log.isDebugEnabled())
             log.info("MethodListener {} Creating...", beanName);
         HermesServiceName serviceName = this.applicationContext.getBean(HermesServiceName.class);
+
+        // 当前监听器只监听本JVM事件
+        if (jvmOnly) {
+            if (async) {
+                AsyncJvmOnlyOnlyMethodListener<?> listener = new AsyncJvmOnlyOnlyMethodListener<>(serviceName, bean, method, eventType, order);
+                listener.setExecutor(this.executor);
+                return listener;
+            }
+            return new JvmOnlyMethodListener<>(serviceName, bean, method, eventType, order);
+        }
+
         HermesRepository hermesRepository = this.applicationContext.getBean(HermesRepository.class);
-        return new MethodListener<>(serviceName,hermesRepository, bean, method, eventType, order);
+        if (async) {
+            AsyncMethodListener<?> listener = new AsyncMethodListener<>(serviceName, hermesRepository, bean, method, eventType, order);
+            listener.setExecutor(this.executor);
+            return listener;
+        }
+        return new MethodListener<>(serviceName, hermesRepository, bean, method, eventType, order);
     }
 
     /**
@@ -120,7 +141,7 @@ public class MethodListenerFactory implements FactoryBean<MethodListener<?>>, Ap
      * Get the object type created by FactoryBean
      *
      * @return MethodListener.class
-     *         MethodListener.class
+     * MethodListener.class
      * @since 2026-01-08
      */
     @Override

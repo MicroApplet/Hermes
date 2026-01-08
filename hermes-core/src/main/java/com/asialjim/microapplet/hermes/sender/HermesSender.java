@@ -45,7 +45,6 @@ public interface HermesSender {
      * @param hermes {@link Hermes hermes}
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     default void send(Hermes<?> hermes) {
         beforeSend(hermes);
@@ -60,7 +59,6 @@ public interface HermesSender {
      * @param hermes {@link Hermes hermes}
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     void beforeSend(Hermes<?> hermes);
 

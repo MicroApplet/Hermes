@@ -16,7 +16,8 @@
 
 package com.asialjim.microapplet.hermes.event;
 
-import com.asialjim.microapplet.hermes.listener.JVMListener;
+import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.listener.JvmOnlyListener;
 import com.asialjim.microapplet.hermes.listener.Listener;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import lombok.AccessLevel;
@@ -57,12 +58,32 @@ public class EventBus {
             return;
         }
 
+        // 各服务都关心哪些事件？
+        final Map<String, Set<String>> serviceSubTypes = new HashMap<>();
         // 按事件类型搜集服务（指定事件类型都有哪些服务感兴趣）
-        Map<Type, Set<String>> serviceMapGroupByType = new HashMap<>();
+        final Map<Type, Set<String>> serviceMapGroupByType = new HashMap<>();
         listenerHub.values()
                 .stream()
                 .flatMap(Collection::stream)
-                .filter(item -> !(item instanceof JVMListener<?>))// 本地监听器不应注册到注册表
+                // 本地监听器不应注册到注册表
+                .filter(item -> !(item instanceof JvmOnlyListener<?>))
+                .peek(item -> {
+                    HermesServiceName serviceName = item.getServiceName();
+                    Set<Type> types = item.eventType();
+                    if (Objects.isNull(serviceName) || Objects.isNull(types))
+                        return;
+
+                    String name = serviceName.serviceName();
+                    if (StringUtils.isBlank(name))
+                        return;
+
+                    Set<String> typeNames = serviceSubTypes.computeIfAbsent(name, s -> new HashSet<>());
+
+                    types.stream()
+                            .filter(Objects::nonNull)
+                            .map(Type::getTypeName)
+                            .forEach(typeNames::add);
+                })
                 .filter(hadRegister::add)
                 .forEach(item ->
                         Optional.ofNullable(item.eventType())
@@ -77,6 +98,9 @@ public class EventBus {
                 hermesRepository.register(type, serviceNames);
             }
         });
+
+        // 注册完成
+        push(new Register2HermesSucceed().setServiceSubTypes(serviceSubTypes));
     }
 
     /**

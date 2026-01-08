@@ -40,7 +40,7 @@ import java.util.Set;
  */
 @Slf4j
 @AllArgsConstructor
-public class MethodListener<Event> implements Listener<Event> {
+public class AsyncMethodListener<Event> extends BaseAsyncListener<Event> implements Listener<Event> {
     /**
      * 服务名称
      * Service name

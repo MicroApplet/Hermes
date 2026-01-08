@@ -45,4 +45,12 @@ public @interface OnEvent {
      * @since 1.0.0
      */
     int order() default 0;
+
+    /**
+     * 是否只监听本实例事件
+     * @since 2026/1/8
+     */
+    boolean jvmOnly() default false;
+
+    boolean async() default false;
 }

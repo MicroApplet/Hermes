@@ -31,6 +31,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * 消费记录服务实现类
@@ -126,7 +128,6 @@ public class ConsumptionMapperServiceImpl
      */
     @Override
     public boolean eventIdAndServiceNameAvailable(String id, String serviceName) {
-
         String key = "tmp:hermes:" + id + ":for:" + serviceName + ":available";
         String s = stringRedisTemplate.opsForValue().get(key);
         if (StringUtils.isNotBlank(s))
@@ -135,7 +136,7 @@ public class ConsumptionMapperServiceImpl
         boolean available = queryChain()
                 .where(ConsumptionPO::getEventId).eq(id)
                 .where(ConsumptionPO::getSubscriber).eq(serviceName)
-                .where(ConsumptionPO::getStatus).le(ConsumptionStatus.PENDING.getId())
+                .where(ConsumptionPO::getStatus).eq(ConsumptionStatus.PENDING.getId())
                 .exists();
         if (available)
             stringRedisTemplate.opsForValue().set(key, "lk", 30, TimeUnit.MINUTES);
@@ -288,7 +289,17 @@ public class ConsumptionMapperServiceImpl
                 )
                 .toList();
 
-        saveBatch(collect);
+        // 批量插入
+        partitionListByStream(collect, 100).forEach(this::saveBatch);
     }
 
+    private static <T> List<List<T>> partitionListByStream(List<T> originalList, @SuppressWarnings("SameParameterValue") int batchSize) {
+        final int totalSize = originalList.size();
+        return IntStream.range(0, (totalSize + batchSize - 1) / batchSize)
+                .mapToObj(i -> originalList.subList(
+                        i * batchSize,
+                        Math.min(totalSize, (i + 1) * batchSize)
+                ))
+                .collect(Collectors.toList());
+    }
 }

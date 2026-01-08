@@ -19,9 +19,9 @@ package com.asialjim.microapplet.hermes.event;
 import com.asialjim.microapplet.hermes.annotation.OnEvent;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -30,10 +30,13 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Spring事件总线Bean工厂后置处理器
@@ -52,7 +55,10 @@ import java.util.Objects;
 @Order
 @Component
 public class SpringEventBusBeanFactoryPostProcessor
-        implements BeanDefinitionRegistryPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+        implements BeanDefinitionRegistryPostProcessor,
+        ApplicationListener<ContextRefreshedEvent> {
+
+    private static final AtomicReference<String> executorBeanName = new AtomicReference<>(StringUtils.EMPTY);
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
@@ -72,6 +78,8 @@ public class SpringEventBusBeanFactoryPostProcessor
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry beanFactory) throws BeansException {
+
+
         for (String name : beanFactory.getBeanDefinitionNames()) {
             BeanDefinition beanDefinition = beanFactory.getBeanDefinition(name);
             String beanClassName = beanDefinition.getBeanClassName();
@@ -84,6 +92,7 @@ public class SpringEventBusBeanFactoryPostProcessor
             }
         }
     }
+
 
     /**
      * 处理单个方法，检查是否带有@OnEvent注解，并注册MethodListenerFactory
@@ -99,7 +108,9 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                               If the method marked with @OnEvent annotation does not meet requirements
      * @since 2026-01-08
      */
-    private void proccessMethod(BeanDefinitionRegistry beanFactory, String beanName, Method method) {
+    private void proccessMethod(BeanDefinitionRegistry beanFactory,
+                                String beanName,
+                                Method method) {
         OnEvent onEvent = method.getAnnotation(OnEvent.class);
         if (Objects.isNull(onEvent))
             return;
@@ -121,7 +132,7 @@ public class SpringEventBusBeanFactoryPostProcessor
             throw new IllegalStateException("Method " + method.getName() + " only one parameter,Cause it was Tagged by " + OnEvent.class);
 
         // 注册MethodListenerFactory
-        register(beanFactory, beanName, method, parameterTypes, onEvent.order());
+        register(beanFactory, beanName, method, parameterTypes, onEvent);
     }
 
     /**
@@ -136,43 +147,65 @@ public class SpringEventBusBeanFactoryPostProcessor
      *                       Method with @OnEvent annotation
      * @param parameterTypes 方法的参数类型数组
      *                       Method parameter type array
-     * @param order          监听器的执行顺序
-     *                       Listener execution order
      * @since 2026-01-08
      */
-    private void register(BeanDefinitionRegistry beanFactory, String beanName, Method method, Class<?>[] parameterTypes, int order) {
+    private void register(BeanDefinitionRegistry beanFactory,
+                          String beanName,
+                          Method method,
+                          Class<?>[] parameterTypes,
+                          OnEvent onEvent) {
         Class<?> parameterType = parameterTypes[0];
         String listenerBeanName = beanName + "#" + method.getName() + "(" + parameterType.getSimpleName() + ")";
 
         // 创建MethodListenerFactory的Bean定义
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MethodListenerFactory.class);
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(OnEventListenerFactory.class);
         builder.addPropertyValue("beanName", listenerBeanName);
         builder.addPropertyReference("bean", beanName);
         builder.addPropertyValue("method", method);
         builder.addPropertyValue("eventType", parameterType);
-        builder.addPropertyValue("order", order);
+        builder.addPropertyValue("order", onEvent.order());
+        builder.addPropertyValue("jvmOnly", onEvent.jvmOnly());
+        builder.addPropertyValue("async", onEvent.async());
+
+        String executorName = executorBeanName(beanFactory);
+        if (StringUtils.isNotBlank(executorName))
+            builder.addPropertyReference("executor", executorName);
         builder.setInitMethodName("init");
 
         AbstractBeanDefinition listenerDefinition = builder.getBeanDefinition();
         beanFactory.registerBeanDefinition(listenerBeanName, listenerDefinition);
     }
 
-    /**
-     * BeanFactoryPostProcessor的回调方法，在BeanFactory初始化后调用
-     * <p>
-     * 本方法在当前类中不执行任何操作，因为所有处理都在postProcessBeanDefinitionRegistry中完成
-     * Callback method of BeanFactoryPostProcessor, called after BeanFactory initialization
-     * <p>
-     * This method does not perform any operations in the current class, because all processing is completed in postProcessBeanDefinitionRegistry
-     *
-     * @param beanFactory 配置列表的BeanFactory
-     *                    Configurable listable BeanFactory
-     * @throws BeansException 如果处理过程中发生异常
-     *                        If an exception occurs during processing
-     * @since 2026-01-08
-     */
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // 本方法不执行任何操作，所有处理都在postProcessBeanDefinitionRegistry中完成
+
+    private String executorBeanName(BeanDefinitionRegistry beanFactory) {
+        String target = executorBeanName.get();
+        if (StringUtils.isNotBlank(target))
+            return target;
+
+        String name = doExecutorBeanName(beanFactory);
+        if (StringUtils.isNotBlank(name))
+            executorBeanName.compareAndSet(StringUtils.EMPTY, name);
+        return name;
+    }
+
+    private String doExecutorBeanName(BeanDefinitionRegistry beanFactory) {
+        for (String name : beanFactory.getBeanDefinitionNames()) {
+            BeanDefinition beanDefinition = beanFactory.getBeanDefinition(name);
+            String beanClassName = beanDefinition.getBeanClassName();
+            if (StringUtils.isBlank(beanClassName))
+                continue;
+
+            try {
+                Class<?> aClass = ClassUtils.forName(beanClassName, this.getClass().getClassLoader());
+                Class<?>[] interfaces = aClass.getInterfaces();
+                for (Class<?> iClass : interfaces) {
+                    if (Executor.class.equals(iClass)) {
+                        return name;
+                    }
+                }
+            } catch (ClassNotFoundException ignored) {
+            }
+        }
+        return StringUtils.EMPTY;
     }
 }

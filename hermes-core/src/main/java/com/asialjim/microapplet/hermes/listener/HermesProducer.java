@@ -47,7 +47,7 @@ import java.util.function.Supplier;
  */
 @Slf4j
 @Setter
-public class HermesProducer implements JVMListener<Object> {
+public class HermesProducer implements JvmOnlyListener<Object> {
     /**
      * 服务名称
      * Service name
@@ -94,7 +94,6 @@ public class HermesProducer implements JVMListener<Object> {
      * @param cluster          事件中继集群
      *                        Event relay cluster
      * @since 1.0.0
-     * @version 1.0.0
      */
     public HermesProducer(@Nonnull HermesServiceName serviceName,
                           @Nonnull HermesRepository hermesRepository,
@@ -115,7 +114,6 @@ public class HermesProducer implements JVMListener<Object> {
      * @return 事件类型集合，包含Object类
      *         Set of event types, contains Object class
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public Set<Type> eventType() {
@@ -129,7 +127,6 @@ public class HermesProducer implements JVMListener<Object> {
      * @return 总是返回true，表示这是一个全局监听器
      *         Always returns true, indicating this is a global listener
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public final boolean globalListener() {
@@ -143,7 +140,6 @@ public class HermesProducer implements JVMListener<Object> {
      * @param hermes Hermes事件对象
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void doOnEvent(Hermes<Object> hermes) {
@@ -153,6 +149,11 @@ public class HermesProducer implements JVMListener<Object> {
                 return;
             }
         }
+        Set<String> sendTo = hermes.getSendTo();
+        // 没人感兴趣此事件，不再发送到hermes
+        if (Objects.isNull(sendTo) || sendTo.isEmpty())
+            return;
+
         // 包装为全局事件，发布到 Hermes
         boolean clusterAlive = hermes.isClusterAlive();
         // 通过事件中继集群发送
@@ -175,7 +176,6 @@ public class HermesProducer implements JVMListener<Object> {
      * @param wrapper Hermes事件包装对象
      *                Hermes event wrapper object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void before(Hermes<Object> wrapper) {

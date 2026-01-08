@@ -36,7 +36,7 @@ import java.util.Set;
  * @since 1.0.0
  */
 @AllArgsConstructor
-public class HermesListener implements JVMListener<Hermes<?>> {
+public class HermesListener implements JvmOnlyListener<Hermes<?>> {
     /**
      * 服务名称
      * Service name

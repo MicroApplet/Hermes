@@ -43,7 +43,6 @@ public abstract class BaseAsyncListener<Event> implements Listener<Event> {
      * @param executor 执行器实例
      *                 Executor instance
      * @since 1.0.0
-     * @version 1.0.0
      */
     public final void setExecutor(Executor executor) {
         this.executor = executor;
@@ -56,7 +55,6 @@ public abstract class BaseAsyncListener<Event> implements Listener<Event> {
      * @param event 事件对象
      *              Event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public final void onEvent(Event event) {
@@ -73,7 +71,6 @@ public abstract class BaseAsyncListener<Event> implements Listener<Event> {
      * @param runnable 要执行的任务
      *                 Task to execute
      * @since 1.0.0
-     * @version 1.0.0
      */
     protected void exe(Runnable runnable) {
         if (Objects.isNull(runnable))

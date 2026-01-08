@@ -24,6 +24,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -78,9 +80,11 @@ public class RedisHermesConsumer extends HermesConsumer implements MessageListen
      */
     public RedisHermesConsumer(@Nullable ScheduledExecutorService scheduler,
                                HermesServiceName hermesServiceName,
-                               HermesRepository hermesRepository) {
+                               HermesRepository hermesRepository,
+                               RedisMessageListenerContainer redisMessageListenerContainer) {
 
         super(scheduler, hermesServiceName, hermesRepository);
+        redisMessageListenerContainer.addMessageListener(this,new ChannelTopic("hermes:id"));
     }
 
     /**
