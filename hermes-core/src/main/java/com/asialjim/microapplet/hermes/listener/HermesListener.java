@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -42,7 +42,7 @@ public class HermesListener implements JvmOnlyListener<Hermes<?>> {
      * Service name
      */
     @Getter
-    private final HermesServiceName serviceName;
+    private final HermesService serviceName;
     
     /**
      * Hermes仓库，用于事件日志记录

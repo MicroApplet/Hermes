@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import jakarta.annotation.PostConstruct;
@@ -90,7 +90,7 @@ public interface Listener<E> extends EventListener, Comparable<Listener<E>> {
      *         Service name instance
      * @since 2026-01-08
      */
-    HermesServiceName getServiceName();
+    HermesService getServiceName();
 
     /**
      * 监听器注册到本地事件总线

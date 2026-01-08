@@ -16,7 +16,9 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
+import com.asialjim.microapplet.hermes.annotation.OnEvent;
+import com.asialjim.microapplet.hermes.event.Register2HermesSucceed;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
@@ -65,26 +67,41 @@ public class RedisHermesConsumer extends HermesConsumer implements MessageListen
      * 事件ID消费者，用于处理接收到的事件ID
      */
     private Consumer<String> consumer;
+    private final RedisMessageListenerContainer redisMessageListenerContainer;
 
     /**
      * 构造函数
      * Constructor
      *
-     * @param scheduler 调度器，用于执行定时任务
-     *                  Scheduler for executing scheduled tasks
-     * @param hermesServiceName 服务名称
-     *                          Service name
+     * @param scheduler        调度器，用于执行定时任务
+     *                         Scheduler for executing scheduled tasks
+     * @param hermesService    服务名称
+     *                         Service name
      * @param hermesRepository 事件仓库
      *                         Event repository
      * @since 2026-01-08
      */
     public RedisHermesConsumer(@Nullable ScheduledExecutorService scheduler,
-                               HermesServiceName hermesServiceName,
+                               HermesService hermesService,
                                HermesRepository hermesRepository,
                                RedisMessageListenerContainer redisMessageListenerContainer) {
 
-        super(scheduler, hermesServiceName, hermesRepository);
-        redisMessageListenerContainer.addMessageListener(this,new ChannelTopic("hermes:id"));
+        super(scheduler, hermesService, hermesRepository);
+        this.redisMessageListenerContainer = redisMessageListenerContainer;
+    }
+
+
+    @OnEvent
+    public void onRegister2HermesSucceed(Register2HermesSucceed succeed) {
+        String names = getHermesService().serviceName();
+        Map<String, Set<String>> serviceSubTypes = succeed.getServiceSubTypes();
+        Set<String> types = serviceSubTypes.getOrDefault(names, new HashSet<>());
+        // 为每个事件类型注册一个 topic, 针对性关注事件
+        List<ChannelTopic> topics = types.stream()
+                .map(item -> new ChannelTopic("hermes:id:" + item))
+                .toList();
+
+        redisMessageListenerContainer.addMessageListener(this, topics);
     }
 
     /**
@@ -100,7 +117,7 @@ public class RedisHermesConsumer extends HermesConsumer implements MessageListen
      * @since 2026-01-08
      */
     @PostConstruct
-    public void init(){
+    public void init() {
         start();
     }
 
@@ -125,16 +142,17 @@ public class RedisHermesConsumer extends HermesConsumer implements MessageListen
             @SuppressWarnings("NullableProblems") Message message,
             byte[] channel) {
 
-        if (ArrayUtils.isEmpty(channel))
+        if (Objects.isNull(channel) || ArrayUtils.isEmpty(channel))
             return;
         //noinspection ConstantValue
         if (Objects.isNull(message))
             return;
 
-        assert channel != null;
         String key = new String(channel, StandardCharsets.UTF_8);
-        if (!StringUtils.equals("hermes:id", key))
+        if (StringUtils.isBlank(key))
             return;
+
+        log.info("收到Hermes 事件：{}",key);
 
         byte[] body = message.getBody();
         String hermesId = new String(body, StandardCharsets.UTF_8);

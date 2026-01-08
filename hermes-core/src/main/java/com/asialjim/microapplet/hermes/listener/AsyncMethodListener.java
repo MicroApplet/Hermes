@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class AsyncMethodListener<Event> extends BaseAsyncListener<Event> impleme
      * Service name
      */
     @Getter
-    private final HermesServiceName serviceName;
+    private final HermesService serviceName;
     
     /**
      * Hermes仓库，用于事件状态更新
@@ -132,7 +132,6 @@ public class AsyncMethodListener<Event> extends BaseAsyncListener<Event> impleme
      * @param throwable 事件处理过程中抛出的异常
      *                 Exception thrown during event processing
      * @since 1.0.0
-     * @version 1.0.0
      */
     @Override
     public void onError(Hermes<Event> hermes, Throwable throwable) {

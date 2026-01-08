@@ -24,8 +24,7 @@ package com.asialjim.microapplet.hermes;
  * @version 1.0.0
  * @since 1.0.0
  */
-@FunctionalInterface
-public interface HermesServiceName {
+public interface HermesService {
 
     /**
      * 获取服务名称
@@ -34,7 +33,13 @@ public interface HermesServiceName {
      * @return 服务名称字符串
      *         Service name string
      * @since 1.0.0
-     * @version 1.0.0
      */
     String serviceName();
+
+    /**
+     * 实例编号
+     * Get Hermes Instance id
+     * @since 2026/1/8
+     */
+    String instanceId();
 }

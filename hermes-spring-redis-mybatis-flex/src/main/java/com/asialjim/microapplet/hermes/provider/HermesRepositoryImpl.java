@@ -16,10 +16,9 @@
 
 package com.asialjim.microapplet.hermes.provider;
 
-import com.asialjim.microapplet.hermes.annotation.OnEvent;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
-import com.asialjim.microapplet.hermes.event.Register2HermesSucceed;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.ConsumptionMapperService;
@@ -31,15 +30,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Hermes事件仓库实现类
@@ -95,6 +94,38 @@ public class HermesRepositoryImpl implements HermesRepository {
      */
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private HermesService hermesService;
+
+    // hermes 心跳保持 lua 脚本
+    private static final String luaScript = """
+                local hash_key = KEYS[1]
+                local instance_id = ARGV[1]
+                local expire_at = ARGV[2]
+                local current_time = ARGV[3]
+                -- 更新当前实例的存活时间
+                redis.call('HSET', hash_key, instance_id, expire_at)
+                -- 获取所有实例的存活记录
+                local entries = redis.call('HGETALL', hash_key)
+                local expired_instances = {}
+                local expired_count = 0
+                -- 遍历所有实例，找出过期的实例
+                for i = 1, #entries, 2 do
+                    local key = entries[i]
+                    local value = tonumber(entries[i+1])
+                    if value < current_time then
+                        expired_count = expired_count + 1
+                        expired_instances[expired_count] = key
+                    end
+                end
+                -- 删除过期的实例
+                if expired_count > 0 then
+                    redis.call('HDEL', hash_key, unpack(expired_instances))
+                end
+            
+                -- 返回过期的实例列表
+                return expired_instances
+            """;
 
     /**
      * 标记事件正在被处理
@@ -158,6 +189,49 @@ public class HermesRepositoryImpl implements HermesRepository {
         this.eventMapperService.succeedEvent(eventId, consumptionCount);
     }
 
+    @Override
+    public void pingPong(HermesService hermesService) {
+        // 当前服务名
+        String name = hermesService.serviceName();
+        // 当前服务实例编号
+        String instanceId = hermesService.instanceId();
+
+        // 当前时间
+        long now = System.currentTimeMillis();
+        // 当前实例要存活到的时间
+        long expireAt = now + TimeUnit.MINUTES.toMillis(2);
+
+        // 为每一个服务在redis创建一个hash, key 为实例编号， value 为该实例要存活到多久
+        String allInstance = "tmp:hermes:service:ping-pong:" + name;
+
+        // 使用 Lua 脚本优化 Redis IO 操作，减少网络往返次数
+
+        // 执行 Lua 脚本
+        List<String> keys = Collections.singletonList(allInstance);
+        List<String> args = Arrays.asList(instanceId, String.valueOf(expireAt), String.valueOf(now));
+
+        List<?> expiredInstanceSet = stringRedisTemplate.execute(
+                new DefaultRedisScript<>(luaScript, List.class),
+                keys,
+                args.toArray()
+        );
+
+        //noinspection ConstantValue
+        if (Objects.isNull(expiredInstanceSet))
+            return;
+
+        if (expiredInstanceSet.isEmpty())
+            return;
+
+        List<String> list = expiredInstanceSet.stream()
+                .filter(Objects::nonNull)
+                .filter(item -> item instanceof String)
+                .map(String::valueOf)
+                .toList();
+
+        this.subscriberMapperService.unRegisterInstance(list);
+    }
+
     /**
      * 填充事件需要发送到的服务列表
      * Populate the list of services that the event needs to be sent to
@@ -196,19 +270,9 @@ public class HermesRepositoryImpl implements HermesRepository {
         if (Objects.isNull(type) || CollectionUtils.isEmpty(serviceNames))
             return;
         String typeName = type.getTypeName();
-        this.subscriberMapperService.register(typeName, serviceNames);
-    }
-
-    @OnEvent(order = Integer.MAX_VALUE, jvmOnly = true, async = true)
-    public void onRegister2HermesSucceed(Register2HermesSucceed succeed) {
-        // 服务      对哪些感兴趣
-        Map<String, Set<String>> serviceSubTypes = succeed.getServiceSubTypes();
-        // TODO 考虑是否要对 注册表做减法，
-        // TODO
-        // TODO 比如：
-        // TODO     版本1中，服务 A 关注了事件 a,b,c
-        // TODO     版本2中，服务 A 关注了事件 b,c
-        // TODO     此时需要考虑是否在注册表中将事件 a 从A服务关注的表中去除？
+        // 注册，将实例编号也同步注册
+        String instanceId = this.hermesService.instanceId();
+        this.subscriberMapperService.register(instanceId, typeName, serviceNames);
     }
 
     /**
@@ -401,19 +465,20 @@ public class HermesRepositoryImpl implements HermesRepository {
     public void publish(Hermes<?> hermes) {
         if (log.isDebugEnabled())
             log.info("Publish Hermes: {}", hermes);
-        if (hermes.global()) {
-            Long res = stringRedisTemplate.execute((RedisCallback<Long>) connection -> {
-                Long l = connection.publish(
-                        "hermes:id".getBytes(StandardCharsets.UTF_8),
-                        hermes.getId().getBytes(StandardCharsets.UTF_8)
-                );
-                if (log.isDebugEnabled())
-                    log.info("Connection Publish Result: {}", l);
-                return l;
-            });
+        // 空事件或者 不是全局事件
+        if (Objects.isNull(hermes) || !hermes.global())
+            return;
 
-            if (log.isDebugEnabled())
-                log.info("Hermes Publish Result: {}", res);
-        }
+        // 针对性发布事件
+        final String topic = "hermes:id:" + hermes.getType();
+        final byte[] topicBytes = topic.getBytes(StandardCharsets.UTF_8);
+        final byte[] bodyBytes = hermes.getId().getBytes(StandardCharsets.UTF_8);
+
+        final RedisCallback<Long> callback = link -> link.publish(topicBytes, bodyBytes);
+
+        final Long res = stringRedisTemplate.execute(callback);
+
+        if (log.isDebugEnabled())
+            log.info("Hermes Publish Result: {}", res);
     }
 }

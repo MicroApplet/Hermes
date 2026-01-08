@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import lombok.AllArgsConstructor;
@@ -46,7 +46,7 @@ public class MethodListener<Event> implements Listener<Event> {
      * Service name
      */
     @Getter
-    private final HermesServiceName serviceName;
+    private final HermesService serviceName;
     
     /**
      * Hermes仓库，用于事件状态更新

@@ -16,12 +16,19 @@
 
 package com.asialjim.microapplet.hermes.spring;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
+
+import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.HexFormat;
+import java.util.UUID;
 
 /**
  * Spring环境下的Hermes服务名称实现
@@ -52,19 +59,63 @@ import org.springframework.stereotype.Component;
  * @since 2026-01-08
  */
 @Component
-public class SpringHermesServiceName implements HermesServiceName, ApplicationContextAware {
+public class SpringHermesServiceName implements HermesService, ApplicationContextAware {
     /**
      * Spring应用上下文
      * Spring application context
      */
     @Setter
     private ApplicationContext applicationContext;
-    
+
     /**
      * 服务名称缓存，避免重复获取
      * Service name cache, avoiding repeated acquisition
      */
     private String name;
+    private static volatile String instanceId;
+
+
+    @Override
+    public String instanceId() {
+        if (StringUtils.isNotBlank(instanceId))
+            return instanceId;
+        synchronized (SpringHermesServiceName.class) {
+            if (StringUtils.isNotBlank(instanceId))
+                return instanceId;
+
+            instanceId = doInstanceId();
+        }
+        return instanceId;
+    }
+
+    private String doInstanceId() {
+        try {
+            // 获取本地IP地址
+            String ip = InetAddress.getLocalHost().getHostAddress();
+
+            // 获取当前进程ID
+            String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+
+            // 获取应用启动时间戳
+            long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
+
+            // 组合生成实例ID
+            String combined = ip + "-" + pid + "-" + startTime;
+
+            // 使用MD5或SHA-1哈希缩短长度
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] digest = md.digest(combined.getBytes(StandardCharsets.UTF_8));
+            // 转换为十六进制字符串
+            String s = HexFormat.of().formatHex(digest).toLowerCase();
+            if (s.length() > 16)
+                return s.substring(0, 16);
+            return s;
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 异常情况下回退到UUID
+            return UUID.randomUUID().toString().toLowerCase().replace("-", "").substring(0, 16);
+        }
+    }
 
     /**
      * 获取当前服务的名称
@@ -85,31 +136,35 @@ public class SpringHermesServiceName implements HermesServiceName, ApplicationCo
      * 5. Default value "unknownService"
      *
      * @return 当前服务的名称
-     *         Name of the current service
+     * Name of the current service
      * @since 2026-01-08
      */
     @Override
     public String serviceName() {
         if (StringUtils.isNotBlank(this.name))
             return this.name;
-        
-        // 从环境变量spring.application.name获取
-        String name = applicationContext.getEnvironment().getProperty("spring.application.name");
-        
-        // 从ApplicationContext.getApplicationName()获取
-        if (StringUtils.isBlank(name))
-            name = applicationContext.getApplicationName();
-        
-        // 从ApplicationContext.getId()获取
-        if (StringUtils.isBlank(name))
-            name = applicationContext.getId();
-        
-        // 使用默认值
-        if (StringUtils.isBlank(name))
-            name = "unknownService";
-        
-        // 缓存服务名称
-        this.name = name;
+
+        synchronized (SpringHermesServiceName.class) {
+
+            // 从环境变量spring.application.name获取
+            String name = applicationContext.getEnvironment().getProperty("spring.application.name");
+
+            // 从ApplicationContext.getApplicationName()获取
+            if (StringUtils.isBlank(name))
+                name = applicationContext.getApplicationName();
+
+            // 从ApplicationContext.getId()获取
+            if (StringUtils.isBlank(name))
+                name = applicationContext.getId();
+
+            // 使用默认值
+            if (StringUtils.isBlank(name))
+                name = "unknownService";
+
+            // 缓存服务名称
+            this.name = name;
+        }
+
         return name;
     }
 }

@@ -21,6 +21,7 @@ import com.asialjim.microapplet.hermes.infrastructure.repository.po.SubscriberPO
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.SubscriberMapperService;
 import com.asialjim.util.jackson.Json;
 import com.mybatisflex.core.query.QueryChain;
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +42,16 @@ public class SubscriberMapperServiceImpl
         implements SubscriberMapperService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Override
+    public void unRegisterInstance(Collection<String> expiredInstanceSet) {
+        QueryWrapper where = query()
+                .where(SubscriberPO::getInstance).in(expiredInstanceSet);
+        boolean remove = remove(where);
+        if (log.isDebugEnabled())
+            log.info("{} 订阅已下线：{}",expiredInstanceSet,remove);
+    }
+
 
     @Override
     public Set<String> applicationsByEventType(String type) {
@@ -64,24 +76,23 @@ public class SubscriberMapperServiceImpl
     }
 
     @Override
-    public void register(String typeName, Set<String> serviceNames) {
+    public void register(String instanceId, String typeName, Set<String> serviceNames) {
         if (log.isDebugEnabled())
             log.info("将 {} 类型事件感兴趣的服务 {} 注册到注册表", typeName, serviceNames);
         serviceNames.stream()
                 .filter(StringUtils::isNotBlank)
-                .map(item -> new SubscriberPO().setType(typeName).setApplication(item))
-                .filter(item -> !hadSubscribe(typeName, item.getApplication()))
+                .map(item -> new SubscriberPO().setType(typeName).setApplication(item).setInstance(instanceId))
+                .filter(item -> !hadSubscribe(instanceId, typeName, item.getApplication()))
                 .forEach(this::save);
 
         String key = "tmp:hermes:register:subService:" + typeName;
         this.stringRedisTemplate.delete(key);
-
     }
 
 
     @Override
-    public boolean hadSubscribe(String type, String serviceName) {
-        String key = "tmp:hermes:register:subscribed:" + type + ":" + serviceName;
+    public boolean hadSubscribe(String instanceId, String type, String serviceName) {
+        String key = "tmp:hermes:register:subscribed:" + instanceId + type + ":" + serviceName;
         String s = this.stringRedisTemplate.opsForValue().get(key);
         if (log.isDebugEnabled())
             log.info("{} 事件服务 {} 注册表缓存{}", type, serviceName, s);
@@ -91,6 +102,7 @@ public class SubscriberMapperServiceImpl
         boolean exists = queryChain()
                 .where(SubscriberPO::getType).eq(type)
                 .where(SubscriberPO::getApplication).eq(serviceName)
+                .where(SubscriberPO::getInstance).eq(instanceId)
                 .exists();
 
         if (log.isDebugEnabled())
@@ -98,4 +110,5 @@ public class SubscriberMapperServiceImpl
         this.stringRedisTemplate.opsForValue().set(key, String.valueOf(exists), 1, TimeUnit.HOURS);
         return exists;
     }
+
 }

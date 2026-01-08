@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.config.redis;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.listener.HermesListener;
 import com.asialjim.microapplet.hermes.listener.HermesProducer;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -54,17 +54,17 @@ public class RedisConfig {
      * <p>
      * This method creates a HermesListener instance for listening and processing events.
      * 
-     * @param hermesServiceName Hermes 服务名称组件，用于标识当前服务
+     * @param hermesService Hermes 服务名称组件，用于标识当前服务
      * @param hermesRepository Hermes 仓库，用于事件存储和管理
      * @return HermesListener 实例
      * @since 1.0.0
      */
     @Bean(initMethod = "register")
     public HermesListener hermesListener(
-            HermesServiceName hermesServiceName,
+            HermesService hermesService,
             HermesRepository hermesRepository) {
         return new HermesListener(
-                hermesServiceName,
+                hermesService,
                 hermesRepository
         );
     }
@@ -77,18 +77,18 @@ public class RedisConfig {
      * <p>
      * This method creates a HermesProducer instance for producing and sending events.
      * 
-     * @param hermesServiceName Hermes 服务名称组件，用于标识当前服务
+     * @param hermesService Hermes 服务名称组件，用于标识当前服务
      * @param hermesRepository Hermes 仓库，用于事件存储和管理
      * @return HermesProducer 实例
      * @since 1.0.0
      */
     @Bean
     public HermesProducer redisHermesProducer(
-            HermesServiceName hermesServiceName,
+            HermesService hermesService,
             HermesRepository hermesRepository) {
 
         return new HermesProducer(
-                hermesServiceName,
+                hermesService,
                 hermesRepository,
                 () -> UUID.randomUUID().toString(),
                 () -> UUID.randomUUID().toString(),

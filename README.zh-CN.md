@@ -165,11 +165,11 @@ public class DemoService {
 public class DemoListener implements Listener<DemoEventA> {
     
     @Autowired
-    private HermesServiceName hermesServiceName;
+    private HermesServiceName hermesService;
     
     @Override
     public HermesServiceName getServiceName() {
-        return hermesServiceName;
+        return hermesService;
     }
     
     @Override
@@ -228,11 +228,11 @@ public class CustomHermesRepository implements HermesRepository {
 public class GlobalListener implements Listener<Object> {
     
     @Autowired
-    private HermesServiceName hermesServiceName;
+    private HermesServiceName hermesService;
     
     @Override
     public HermesServiceName getServiceName() {
-        return hermesServiceName;
+        return hermesService;
     }
     
     @Override

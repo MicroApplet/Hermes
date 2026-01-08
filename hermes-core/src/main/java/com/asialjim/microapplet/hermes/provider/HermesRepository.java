@@ -16,6 +16,7 @@
 
 package com.asialjim.microapplet.hermes.provider;
 
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.sender.HermesSender;
 
@@ -39,7 +40,6 @@ public interface HermesRepository extends HermesSender {
      * @param hermes {@link Hermes hermes}
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     void populateSendTo(Hermes<?> hermes);
 
@@ -52,7 +52,6 @@ public interface HermesRepository extends HermesSender {
      * @param serviceNames {@link Set<String> serviceNames}
      *                    Set of service names
      * @since 1.0.0
-     * @version 1.0.0
      */
     void register(Type type, Set<String> serviceNames);
 
@@ -65,7 +64,6 @@ public interface HermesRepository extends HermesSender {
      * @return {@link Hermes 事件 }
      *         Hermes event
      * @since 1.0.0
-     * @version 1.0.0
      */
     Hermes<?> pop(String serviceName);
 
@@ -86,7 +84,6 @@ public interface HermesRepository extends HermesSender {
      * @return {@link Hermes }
      *         Hermes event
      * @since 1.0.0
-     * @version 1.0.0
      */
     Hermes<?> queryAvailableHermesByIdAndServiceName(String id, String serviceName);
 
@@ -103,7 +100,6 @@ public interface HermesRepository extends HermesSender {
      * @param err         {@link String err}
      *                   Error message if processing failed
      * @since 1.0.0
-     * @version 1.0.0
      */
     void log(String id, String serviceName, String code, String err);
 
@@ -114,7 +110,6 @@ public interface HermesRepository extends HermesSender {
      * @param serviceName {@link String serviceName}
      *                   Service name
      * @since 1.0.0
-     * @version 1.0.0
      */
     void reConsumption(String serviceName);
 
@@ -127,7 +122,6 @@ public interface HermesRepository extends HermesSender {
      * @param application 应用服务名称
      *                   Application service name
      * @since 1.0.0
-     * @version 1.0.0
      */
     void processingEvent(String eventId, String application);
 
@@ -142,7 +136,6 @@ public interface HermesRepository extends HermesSender {
      * @param err        错误信息
      *                   Error message
      * @since 1.0.0
-     * @version 1.0.0
      */
     void errorEvent(String eventId, String application, String err);
 
@@ -155,7 +148,8 @@ public interface HermesRepository extends HermesSender {
      * @param application 应用服务名称
      *                   Application service name
      * @since 1.0.0
-     * @version 1.0.0
      */
     void succeedEvent(String eventId, String application);
+
+    void pingPong(HermesService hermesService);
 }

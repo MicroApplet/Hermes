@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,7 +46,7 @@ public class JvmOnlyMethodListener<Event> implements JvmOnlyListener<Event> {
      * Service name
      */
     @Getter
-    private final HermesServiceName serviceName;
+    private final HermesService serviceName;
 
     /**
      * 目标Bean实例

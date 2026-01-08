@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesCluster;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -53,7 +53,7 @@ public class HermesProducer implements JvmOnlyListener<Object> {
      * Service name
      */
     @Getter
-    private final HermesServiceName serviceName;
+    private final HermesService serviceName;
     
     /**
      * Hermes仓库，用于事件存储和发送
@@ -95,7 +95,7 @@ public class HermesProducer implements JvmOnlyListener<Object> {
      *                        Event relay cluster
      * @since 1.0.0
      */
-    public HermesProducer(@Nonnull HermesServiceName serviceName,
+    public HermesProducer(@Nonnull HermesService serviceName,
                           @Nonnull HermesRepository hermesRepository,
                           @Nonnull Supplier<String> sessionSupplier,
                           @Nonnull Supplier<String> traceSupplier,

@@ -19,6 +19,7 @@ package com.asialjim.microapplet.hermes.infrastructure.repository.service;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.SubscriberPO;
 import com.mybatisflex.core.service.IService;
 
+import java.util.Collection;
 import java.util.Set;
 
 /**
@@ -46,7 +47,6 @@ public interface SubscriberMapperService extends IService<SubscriberPO> {
      * 
      * @param type 事件类型
      * @return 应用名称集合
-     * @version 1.0.0
      * @since 1.0.0
      */
     Set<String> applicationsByEventType(String type);
@@ -61,10 +61,9 @@ public interface SubscriberMapperService extends IService<SubscriberPO> {
      * 
      * @param typeName 事件类型名称
      * @param serviceNames 服务名称集合
-     * @version 1.0.0
      * @since 1.0.0
      */
-    void register(String typeName, Set<String> serviceNames);
+    void register(String instanceId,String typeName, Set<String> serviceNames);
 
     /**
      * 检查是否已经订阅了某个事件类型
@@ -77,8 +76,9 @@ public interface SubscriberMapperService extends IService<SubscriberPO> {
      * @param type 事件类型
      * @param serviceName 服务名称
      * @return 如果已经订阅则返回true，否则返回false
-     * @version 1.0.0
      * @since 1.0.0
      */
-    boolean hadSubscribe(String type, String serviceName);
+    boolean hadSubscribe(String instanceId,String type, String serviceName);
+
+    void unRegisterInstance(Collection<String> expiredInstanceSet);
 }

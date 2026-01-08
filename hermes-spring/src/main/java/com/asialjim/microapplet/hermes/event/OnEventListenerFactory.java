@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.event;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.listener.*;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import jakarta.annotation.PostConstruct;
@@ -100,7 +100,7 @@ public class OnEventListenerFactory
     public Listener<?> getObject() {
         if (log.isDebugEnabled())
             log.info("MethodListener {} Creating...", beanName);
-        HermesServiceName serviceName = this.applicationContext.getBean(HermesServiceName.class);
+        HermesService serviceName = this.applicationContext.getBean(HermesService.class);
 
         // 当前监听器只监听本JVM事件
         if (jvmOnly) {

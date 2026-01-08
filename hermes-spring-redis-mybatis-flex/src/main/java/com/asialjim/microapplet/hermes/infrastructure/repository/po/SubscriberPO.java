@@ -66,6 +66,7 @@ public class SubscriberPO implements Serializable {
      * Name of the service interested in the specified event
      */
     private String application;
+    private String instance;
 
     /**
      * 创建时间，插入时自动生成

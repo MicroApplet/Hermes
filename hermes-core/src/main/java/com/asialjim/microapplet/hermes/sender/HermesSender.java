@@ -69,7 +69,6 @@ public interface HermesSender {
      * @param hermes {@link Hermes hermes}
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     void doSend(Hermes<?> hermes);
 
@@ -82,7 +81,6 @@ public interface HermesSender {
      * @param hermes {@link Hermes hermes}
      *              Hermes event object
      * @since 1.0.0
-     * @version 1.0.0
      */
     void publish(Hermes<?> hermes);
 }

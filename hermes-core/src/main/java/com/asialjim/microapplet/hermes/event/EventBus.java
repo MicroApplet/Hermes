@@ -16,7 +16,7 @@
 
 package com.asialjim.microapplet.hermes.event;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.listener.JvmOnlyListener;
 import com.asialjim.microapplet.hermes.listener.Listener;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
@@ -43,6 +43,8 @@ public class EventBus {
     private static final Map<Type, TreeSet<Listener<?>>> listenerHub = new ConcurrentHashMap<>();
     private static final Set<Listener<?>> globalListeners = new TreeSet<>();
     private static final Set<Listener<?>> hadRegister = new HashSet<>();
+    // 各服务都关心哪些事件？
+    private static final Map<String, Set<String>> serviceSubTypes = new HashMap<>();
 
     /**
      * 注册监听器到Hermes注册表
@@ -58,8 +60,7 @@ public class EventBus {
             return;
         }
 
-        // 各服务都关心哪些事件？
-        final Map<String, Set<String>> serviceSubTypes = new HashMap<>();
+
         // 按事件类型搜集服务（指定事件类型都有哪些服务感兴趣）
         final Map<Type, Set<String>> serviceMapGroupByType = new HashMap<>();
         listenerHub.values()
@@ -68,7 +69,7 @@ public class EventBus {
                 // 本地监听器不应注册到注册表
                 .filter(item -> !(item instanceof JvmOnlyListener<?>))
                 .peek(item -> {
-                    HermesServiceName serviceName = item.getServiceName();
+                    HermesService serviceName = item.getServiceName();
                     Set<Type> types = item.eventType();
                     if (Objects.isNull(serviceName) || Objects.isNull(types))
                         return;
@@ -190,6 +191,7 @@ public class EventBus {
         push(null, event);
     }
 
+
     /**
      * 注册监听器到事件总线
      * Register listener to event bus
@@ -224,4 +226,5 @@ public class EventBus {
             listeners.add(listener);
         }
     }
+
 }

@@ -16,16 +16,16 @@
 
 package com.asialjim.microapplet.hermes.listener;
 
-import com.asialjim.microapplet.hermes.HermesServiceName;
+import com.asialjim.microapplet.hermes.HermesService;
 import com.asialjim.microapplet.hermes.event.EventBus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.provider.HermesRepository;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 import java.util.Optional;
-import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -45,13 +45,14 @@ public abstract class HermesConsumer {
      * Scheduled executor service for timed tasks and asynchronous operations
      */
     private final ScheduledExecutorService scheduler;
-    
+
     /**
      * Hermes服务名称
      * Hermes service name
      */
-    private final HermesServiceName hermesServiceName;
-    
+    @Getter(AccessLevel.PROTECTED)
+    private final HermesService hermesService;
+
     /**
      * Hermes仓库，用于事件存储和查询
      * Hermes repository for event storage and query
@@ -62,18 +63,18 @@ public abstract class HermesConsumer {
      * 构造函数
      * Constructor
      *
-     * @param scheduler 调度执行器
-     *                  Scheduled executor service
-     * @param hermesServiceName Hermes服务名称
-     *                          Hermes service name
+     * @param scheduler        调度执行器
+     *                         Scheduled executor service
+     * @param hermesService    Hermes服务名称
+     *                         Hermes service name
      * @param hermesRepository Hermes仓库
-     *                        Hermes repository
+     *                         Hermes repository
      * @since 1.0.0
      */
     protected HermesConsumer(
-             ScheduledExecutorService scheduler, HermesServiceName hermesServiceName, HermesRepository hermesRepository) {
-        this.scheduler = Optional.ofNullable( scheduler).orElseGet(Executors::newSingleThreadScheduledExecutor);
-        this.hermesServiceName = hermesServiceName;
+            ScheduledExecutorService scheduler, HermesService hermesService, HermesRepository hermesRepository) {
+        this.scheduler = Optional.ofNullable(scheduler).orElseGet(Executors::newSingleThreadScheduledExecutor);
+        this.hermesService = hermesService;
         this.hermesRepository = hermesRepository;
     }
 
@@ -87,6 +88,9 @@ public abstract class HermesConsumer {
     public final void start() {
         // 补偿消费
         eventReConsumption();
+
+        // 发送心跳
+        pingPong();
 
         // 监听中间件
         listen2MQ(this::onHermesReceived);
@@ -111,7 +115,6 @@ public abstract class HermesConsumer {
      * @param consumer {@link Consumer consumer}
      *                 Consumer function
      * @since 1.0.0
-     * @version 1.0.0
      */
     protected abstract void listen2MQ(Consumer<String> consumer);
 
@@ -120,7 +123,6 @@ public abstract class HermesConsumer {
      * Close middleware listener gracefully
      *
      * @since 1.0.0
-     * @version 1.0.0
      */
     protected abstract void gracefullyShutdownMQListener();
 
@@ -133,7 +135,7 @@ public abstract class HermesConsumer {
      * @since 1.0.0
      */
     private void onHermesReceived(String id) {
-        Hermes<?> hermes = this.hermesRepository.queryAvailableHermesByIdAndServiceName(id, this.hermesServiceName.serviceName());
+        Hermes<?> hermes = this.hermesRepository.queryAvailableHermesByIdAndServiceName(id, this.hermesService.serviceName());
         // 发布本地事件
         Optional.ofNullable(hermes)
                 .flatMap(item -> Optional.of(item.setGlobal(false)))
@@ -147,43 +149,21 @@ public abstract class HermesConsumer {
      * Starts consumption once when the application starts, then consumes every 2 minutes
      *
      * @since 1.0.0
-     * @version 1.0.0
      */
     protected void eventReConsumption() {
         this.scheduler.scheduleAtFixedRate(
-                new ReConsumptionEventTask(this.hermesServiceName.serviceName(), this.hermesRepository),
-                0, 2, TimeUnit.MINUTES
-        );
+                () -> this.hermesRepository.reConsumption(this.hermesService.serviceName()),
+                0, 2, TimeUnit.MINUTES);
     }
 
     /**
-     * 重新消费事件任务
-     * Reconsumption event task
+     * 每 30秒发送一次心跳
+     *
+     * @since 2026/1/8
      */
-    @AllArgsConstructor
-    static class ReConsumptionEventTask extends TimerTask {
-        /**
-         * 服务名称
-         * Service name
-         */
-        private final String serviceName;
-        
-        /**
-         * Hermes仓库
-         * Hermes repository
-         */
-        private final HermesRepository hermesRepository;
-
-        /**
-         * 执行重新消费任务
-         * Execute reconsumption task
-         *
-         * @since 1.0.0
-         * @version 1.0.0
-         */
-        @Override
-        public void run() {
-            hermesRepository.reConsumption(serviceName);
-        }
+    protected void pingPong() {
+        this.scheduler.scheduleAtFixedRate(
+                () -> hermesRepository.pingPong(hermesService),
+                0, 30, TimeUnit.SECONDS);
     }
 }
