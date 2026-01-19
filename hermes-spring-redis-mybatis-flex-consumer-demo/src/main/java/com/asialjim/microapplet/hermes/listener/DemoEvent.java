@@ -1,0 +1,57 @@
+/*
+ *    Copyright 2014-2026 <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+package com.asialjim.microapplet.hermes.listener;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+import java.io.Serial;
+import java.io.Serializable;
+
+/**
+ * 事件示例
+ * Event Example
+ * <p>
+ * 该类是 Hermes 框架的事件示例类，
+ * 用于演示事件的定义和使用方式。
+ * <p>
+ * This class is the event example class of Hermes framework,
+ * used to demonstrate the definition and usage of events.
+ *
+ * @author <a href="mailto:asialjim@qq.com">Asial Jim</a>
+ * @version 1.0.0
+ * @since 2026-01-08
+ */
+@Data
+@Accessors(chain = true)
+public class DemoEvent implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -7285390285174308478L;
+
+    /**
+     * 事件ID
+     * Event ID
+     */
+    private String id;
+    
+    /**
+     * 事件名称
+     * Event name
+     */
+    private String name;
+}
