@@ -16,11 +16,11 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.repository.po;
 
+import com.asialjim.microapplet.common.utils.JsonUtil;
 import com.asialjim.microapplet.hermes.HermesStatus;
 import com.asialjim.microapplet.hermes.event.Hermes;
 import com.asialjim.microapplet.hermes.infrastructure.config.table.HermesTable;
 import com.asialjim.microapplet.hermes.infrastructure.repository.handler.HermesStatusHandler;
-import com.asialjim.util.jackson.Json;
 import com.mybatisflex.annotation.Column;
 import com.mybatisflex.annotation.Id;
 import com.mybatisflex.annotation.KeyType;
@@ -154,7 +154,7 @@ public class EventPO implements Serializable {
 
         try {
             String json = hermes.getData();
-            Object o = Json.instance.toBean(json, Class.forName(hermes.getType()));
+            Object o = JsonUtil.instance.toBean(json, Class.forName(hermes.getType()));
             po.setData(o);
         } catch (Throwable ignored) {
         }
@@ -174,14 +174,13 @@ public class EventPO implements Serializable {
      * 
      * @param hermes Hermes 对象
      * @return EventPO 对象
-     * @version 1.0.0
      * @since 1.0.0
      */
     public static EventPO from(Hermes<?> hermes) {
         EventPO po = new EventPO();
         po.setId(hermes.getId());
         po.setType(hermes.getType());
-        po.setData(Json.instance.toStr(hermes.getData()));
+        po.setData(JsonUtil.instance.toStr(hermes.getData()));
         po.setStatus(HermesStatus.codeOf(hermes.getStatus()));
         po.setSendBy(hermes.getSendFrom());
         po.setSendTo(String.join(",",hermes.getSendTo()));

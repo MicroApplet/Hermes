@@ -16,12 +16,12 @@
 
 package com.asialjim.microapplet.hermes.infrastructure.repository.service.impl;
 
+import com.asialjim.microapplet.common.utils.JsonUtil;
 import com.asialjim.microapplet.hermes.HermesStatus;
 import com.asialjim.microapplet.hermes.infrastructure.repository.mapper.EventBaseMapper;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.ConsumptionCount;
 import com.asialjim.microapplet.hermes.infrastructure.repository.po.EventPO;
 import com.asialjim.microapplet.hermes.infrastructure.repository.service.EventMapperService;
-import com.asialjim.util.jackson.Json;
 import com.mybatisflex.core.update.UpdateChain;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
@@ -50,14 +50,14 @@ public class EventMapperServiceImpl
         String json = stringRedisTemplate.opsForValue().get(key);
 
         if (StringUtils.isNotBlank(json)) {
-            return Json.instance.toBean(json, EventPO.class);
+            return JsonUtil.instance.toBean(json, EventPO.class);
         }
 
         EventPO byId = getById(hermesId);
         if (Objects.isNull(byId))
             byId = new EventPO().setData("-");
 
-        json = Json.instance.toStr(byId);
+        json = JsonUtil.instance.toStr(byId);
         stringRedisTemplate.opsForValue().set(key, json, 2, TimeUnit.HOURS);
         return byId;
     }
@@ -67,7 +67,7 @@ public class EventMapperServiceImpl
         save(po);
 
         String key = "tmp:hermes:by-id:" + po.getId();
-        String json = Json.instance.toStr(po);
+        String json = JsonUtil.instance.toStr(po);
         stringRedisTemplate.opsForValue().set(key, json, 6, TimeUnit.HOURS);
     }
 
